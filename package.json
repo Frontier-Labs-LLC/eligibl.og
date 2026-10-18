@@ -7,10 +7,14 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^13.5.0",
+    "@vercel/analytics": "^1.5.0",
+    "leaflet": "^1.9.4",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "react-leaflet": "^5.0.0",
     "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "zustand": "^5.0.15"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -23,6 +27,12 @@
       "react-app",
       "react-app/jest"
     ]
+  },
+  "jest": {
+    "moduleNameMapper": {
+      "^@vercel/analytics/react$": "<rootDir>/node_modules/@vercel/analytics/dist/react/index.js",
+      "\\.(css|less)$": "<rootDir>/src/test/styleMock.js"
+    }
   },
   "browserslist": {
     "production": [
