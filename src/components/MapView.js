@@ -24,6 +24,8 @@ const CATEGORY_COLORS = {
   veterans: '#4f46e5',
   social_services: '#64748b',
   community: '#ea580c',
+  campground: '#0f766e',
+  safe_parking: '#b45309',
 };
 
 const CATEGORY_LABELS = {
@@ -38,6 +40,8 @@ const CATEGORY_LABELS = {
   veterans: 'Veterans',
   social_services: 'Social Services',
   community: 'Community & Faith',
+  campground: 'Campgrounds',
+  safe_parking: 'Safe parking',
 };
 
 function createColoredIcon(color) {
@@ -61,9 +65,9 @@ function FlyTo({ center, zoom }) {
   return null;
 }
 
-export default function MapView({ onBack }) {
+export default function MapView({ onBack, initialCategories = [] }) {
   /* ── state ─────────────────────────────────────────────────── */
-  const [activeCategories, setActiveCategories] = useState(new Set()); // empty = all
+  const [activeCategories, setActiveCategories] = useState(() => new Set(initialCategories)); // empty = all
   const [searchTerm, setSearchTerm] = useState('');
   const [showList, setShowList] = useState(false);
   const [flyTarget, setFlyTarget] = useState(null);
@@ -265,6 +269,16 @@ export default function MapView({ onBack }) {
               </button>
             )}
           </div>
+
+          {(activeCategories.has('campground') || activeCategories.has('safe_parking')) && (
+            <p className="mv-stay-note">
+              These campgrounds are North Carolina State Parks sites. Reserve first:
+              $15 to $145 a night, check-in at 3 p.m., check-out at noon, and no more
+              than 14 nights in any 30 days. Safe parking is listed only when the
+              program publishes the lot — register before you arrive. NCDOT rest areas
+              and welcome centers are not overnight parking, and they are not pins.
+            </p>
+          )}
 
           <div className="mv-sidebar-legend">
             <p className="mv-sidebar-note">

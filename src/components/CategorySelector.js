@@ -166,7 +166,7 @@ const CATEGORIES = [
   },
 ];
 
-export default function CategorySelector({ onApply, onOpenMap, onOpenOffice }) {
+export default function CategorySelector({ onApply, onOpenMap, onOpenCamp, onOpenOffice }) {
   const [selected, setSelected] = useState(new Set());
 
   const allSelected = selected.size === CATEGORIES.length;
@@ -301,6 +301,17 @@ export default function CategorySelector({ onApply, onOpenMap, onOpenOffice }) {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /><line x1="8" y1="2" x2="8" y2="18" /><line x1="16" y1="6" x2="16" y2="22" /></svg>
               View NC Resource Map
             </button>
+            {onOpenCamp && (
+              <button type="button" className="cs-btn-map" onClick={onOpenCamp}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18"><path d="M4 20V10l8-6 8 6v10" /><path d="M9 20v-6h6v6" /></svg>
+                Public campgrounds and safe parking
+              </button>
+            )}
+            <p className="cs-camp-note">
+              Campgrounds are North Carolina State Parks sites with a published address.
+              Safe parking is listed only when the program publishes the lot.
+              Rest areas are not overnight parking.
+            </p>
           </div>
         )}
 

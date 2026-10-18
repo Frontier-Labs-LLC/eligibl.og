@@ -13,6 +13,12 @@ function App() {
   )); // 'categories' | 'onboarding' | 'results' | 'map' | 'office'
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [completedProfile, setCompletedProfile] = useState(null);
+  const [mapCategories, setMapCategories] = useState([]);
+
+  function openMap(categories = []) {
+    setMapCategories(categories);
+    setView('map');
+  }
 
   function openOffice() {
     window.location.hash = 'office';
@@ -39,7 +45,7 @@ function App() {
   }, [view]);
 
   if (view === 'map') {
-    return <><Analytics /><ThemeToggle /><MapView onBack={() => setView('categories')} /></>;
+    return <><Analytics /><ThemeToggle /><MapView onBack={() => setView('categories')} initialCategories={mapCategories} /></>;
   }
 
   if (view === 'office') {
@@ -50,14 +56,14 @@ function App() {
         <OfficeBrief
           onBack={leaveOffice}
           onRunCheck={leaveOffice}
-          onOpenMap={() => setView('map')}
+          onOpenMap={() => openMap()}
         />
       </>
     );
   }
 
   if (view === 'categories') {
-    return <><Analytics /><ThemeToggle /><CategorySelector onApply={handleCategoryApply} onOpenMap={() => setView('map')} onOpenOffice={openOffice} /></>;
+    return <><Analytics /><ThemeToggle /><CategorySelector onApply={handleCategoryApply} onOpenMap={() => openMap()} onOpenCamp={() => openMap(['campground', 'safe_parking'])} onOpenOffice={openOffice} /></>;
   }
 
   if (view === 'onboarding') {
@@ -81,7 +87,7 @@ function App() {
         profile={completedProfile}
         selectedCategories={selectedCategories}
         onStartOver={() => { setView('categories'); setCompletedProfile(null); setSelectedCategories([]); }}
-        onOpenMap={() => setView('map')}
+        onOpenMap={() => openMap()}
       />
     </>
   );

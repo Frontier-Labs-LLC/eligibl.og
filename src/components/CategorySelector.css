@@ -577,8 +577,20 @@
 
 /* -- Map link -------------------------------------------- */
 .cs-map-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
   text-align: center;
   margin-top: 24px;
+}
+
+.cs-camp-note {
+  max-width: 36rem;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.45;
 }
 
 .cs-btn-map {

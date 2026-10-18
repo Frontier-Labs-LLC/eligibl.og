@@ -1,8 +1,11 @@
+import NC_CAMP_PARKING from './nc-camp-parking';
+
 /**
  * NC Aid Program Map Locations — ~300 real aid locations across North Carolina
  *
  * Categories: food, healthcare, shelter, housing, utilities, cash, education,
  *             childcare, veterans, social_services, community
+ * Campgrounds and safe parking are appended from nc-camp-parking.js.
  */
 
 const NC_MAP_LOCATIONS = [
@@ -650,6 +653,8 @@ const NC_MAP_LOCATIONS = [
   { id: 'loc-ch-transylvania-churches', name: 'Transylvania Christian Ministry', category: 'community', address: '115 W Morgan St, Brevard, NC 28712', lat: 35.2328, lng: -82.7355, description: 'Multi-church coalition providing food, shelter, and pastoral support in Transylvania County.', phone: '828-884-2550', website: '' },
   { id: 'loc-ch-shelby-churches', name: 'Cleveland County Church Coalition', category: 'community', address: '414 W Warren St, Shelby, NC 28150', lat: 35.2910, lng: -81.5370, description: 'Church-supported meals, clothing, and crisis assistance for Cleveland County.', phone: '704-482-9269', website: '' },
   { id: 'loc-ch-hendersonville-churches', name: 'Hendersonville Church Feed Program', category: 'community', address: '6 E Caswell St, Hendersonville, NC 28792', lat: 35.3170, lng: -82.4590, description: 'Church-run community meals and food pantry program for Henderson County.', phone: '828-693-4010', website: '' },
+
+  ...NC_CAMP_PARKING,
 ];
 
 export default NC_MAP_LOCATIONS;
