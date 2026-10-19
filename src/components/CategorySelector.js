@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { CITY_DISCLAIMER, activeCity, useCityConfig } from '../cityConfig';
+import CityIcon from './CityIcons';
 import './CategorySelector.css';
 
 const CATEGORIES = [
@@ -166,8 +168,9 @@ const CATEGORIES = [
   },
 ];
 
-export default function CategorySelector({ onApply, onOpenMap, onOpenCamp, onOpenOffice }) {
+export default function CategorySelector({ onApply, onOpenMap, onOpenCamp, onOpenOffice, onOpenAdmin }) {
   const [selected, setSelected] = useState(new Set());
+  const city = activeCity(useCityConfig());
 
   const allSelected = selected.size === CATEGORIES.length;
 
@@ -203,13 +206,40 @@ export default function CategorySelector({ onApply, onOpenMap, onOpenCamp, onOpe
 
         {/* Header */}
         <header className="cs-header">
-          <div className="cs-logo" aria-label="Eligibl">
+          <div className="cs-logo" aria-label={city ? `Eligibl for ${city.placeName}` : 'Eligibl'}>
             <span className="cs-logo-e" aria-hidden="true">E</span>ligibl
           </div>
-          <p className="cs-tagline">Federal &amp; state aid — found fast.</p>
+          <p className="cs-tagline">{city ? city.tagline : 'Federal & state aid — found fast.'}</p>
+          {city && (
+            <div className="cs-city">
+              <p className="cs-city-name">{city.placeName}</p>
+              <p>{city.intro}</p>
+              <p>
+                <a href={`tel:${city.contactPhone}`}>{city.contactPhone}</a>
+                {' · '}
+                {city.contactName}
+                {' · '}
+                {city.contactAddress}
+              </p>
+              <ul className="cs-city-icons">
+                {city.services.map((service, index) => (
+                  <li key={`${service.icon}-${index}`}>
+                    <span aria-hidden="true"><CityIcon id={service.icon} /></span>
+                    {service.label}
+                  </li>
+                ))}
+              </ul>
+              <p className="cs-city-note">{CITY_DISCLAIMER}</p>
+            </div>
+          )}
           {onOpenOffice && (
             <button type="button" className="cs-btn-office" onClick={onOpenOffice}>
               State offices — seed or support this
+            </button>
+          )}
+          {onOpenAdmin && (
+            <button type="button" className="cs-btn-office" onClick={onOpenAdmin}>
+              City preview
             </button>
           )}
         </header>

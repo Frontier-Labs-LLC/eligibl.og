@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import useOnboardingStore from '../store/useOnboardingStore';
+import { activeCity, useCityConfig } from '../cityConfig';
 import './OnboardingForm.css';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -640,7 +641,11 @@ export default function OnboardingForm({ selectedCategories, onComplete }) {
   const [currentStep, setCurrentStep] = useState(1);
   const store = useOnboardingStore();
 
+  const city = activeCity(useCityConfig());
   const current   = STEP_META[currentStep - 1];
+  const stepSubtitle = current.number === 1 && city
+    ? `This preview is configured for ${city.placeName}. Programs are still North Carolina programs.`
+    : current.subtitle;
   const progress  = (currentStep / TOTAL_STEPS) * 100;
   const isLastStep = currentStep === TOTAL_STEPS;
 
@@ -762,7 +767,7 @@ export default function OnboardingForm({ selectedCategories, onComplete }) {
         <main id="of-main" className="of-card" aria-label={`Step ${currentStep} of ${TOTAL_STEPS}: ${current.title}`}>
           <div className="of-step-header">
             <h1 className="of-step-title">{current.title}</h1>
-            <p className="of-step-subtitle">{current.subtitle}</p>
+            <p className="of-step-subtitle">{stepSubtitle}</p>
           </div>
 
           {renderStep()}

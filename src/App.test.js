@@ -3,8 +3,12 @@ import userEvent from '@testing-library/user-event';
 import App from './App';
 import NC_PROGRAMS from './data/nc-programs';
 import NC_CAMP_PARKING from './data/nc-camp-parking';
+import { resetCityStore } from './cityConfig';
 
 beforeEach(() => {
+  localStorage.clear();
+  resetCityStore();
+  document.documentElement.removeAttribute('data-theme');
   window.history.replaceState(null, '', '/');
 });
 
@@ -44,6 +48,37 @@ test('public campgrounds and safe parking open on the map', () => {
     expect(place.lng).toBeGreaterThan(-84.4);
     expect(place.address).toMatch(/NC/);
   });
+});
+
+test('opens in dark mode without asking', () => {
+  render(<App />);
+  expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
+  expect(screen.getByRole('button', { name: /switch to light mode/i })).toBeInTheDocument();
+});
+
+test('a Charlotte preview is configured from the admin route', () => {
+  window.location.hash = '#admin';
+  render(<App />);
+
+  expect(screen.getByRole('heading', { name: /configure the charlotte preview/i })).toBeInTheDocument();
+  expect(screen.getByText(/not an official city of charlotte system/i)).toBeInTheDocument();
+
+  const phone = screen.getByLabelText(/office phone/i);
+  userEvent.clear(phone);
+  userEvent.type(phone, '980-314-5501');
+  userEvent.click(screen.getByRole('button', { name: /show the charlotte version/i }));
+
+  expect(screen.getByRole('heading', { name: /find benefits by category/i })).toBeInTheDocument();
+  expect(screen.getByText('City of Charlotte')).toBeInTheDocument();
+  expect(screen.getByText('980-314-5501')).toBeInTheDocument();
+  expect(screen.getByText(/not an official city of charlotte system/i)).toBeInTheDocument();
+});
+
+test('the charlotte address opens that preview', () => {
+  window.location.hash = '#charlotte';
+  render(<App />);
+  expect(screen.getByText('City of Charlotte')).toBeInTheDocument();
+  expect(screen.getByText(/301 Billingsley Rd/i)).toBeInTheDocument();
 });
 
 test('the brief can return to the resident check', () => {

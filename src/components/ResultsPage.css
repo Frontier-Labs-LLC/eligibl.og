@@ -128,7 +128,7 @@
   border-radius: 20px;
   padding: 40px;
   margin: 24px 0 20px;
-  color: var(--card);
+  color: #f8fafc;
 }
 
 @media (max-width: 600px) {

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { matchPrograms, getConfidenceLabel, getConfidenceColor } from '../lib/matchingEngine';
+import { CITY_DISCLAIMER, activeCity, useCityConfig } from '../cityConfig';
 import PROGRAMS from '../data/programs';
 import { getStatePrograms } from '../data/statePrograms';
 import './ResultsPage.css';
@@ -54,6 +55,7 @@ const CATEGORY_ICONS = {
 };
 
 export default function ResultsPage({ profile, selectedCategories, onStartOver, onOpenMap }) {
+  const city = activeCity(useCityConfig());
   const [activeFilter, setActiveFilter]     = useState('all');
   const [expandedId,   setExpandedId]       = useState(null);
 
@@ -149,6 +151,11 @@ export default function ResultsPage({ profile, selectedCategories, onStartOver, 
             <strong className="rp-possibly">{possiblyCount} possibly eligible</strong>.
             Review each program and apply directly at the official source.
           </p>
+          {city && (
+            <p className="rp-hero-sub">
+              {city.placeName}: {city.contactName}, {city.contactPhone}. {CITY_DISCLAIMER}
+            </p>
+          )}
           <div className="rp-badges">
             <span className="rp-badge rp-badge--green">🔒 Anonymous</span>
             <span className="rp-badge rp-badge--blue">✓ Official .gov sources only</span>

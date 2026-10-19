@@ -65,7 +65,7 @@ function FlyTo({ center, zoom }) {
   return null;
 }
 
-export default function MapView({ onBack, initialCategories = [] }) {
+export default function MapView({ onBack, initialCategories = [], city = null }) {
   /* ── state ─────────────────────────────────────────────────── */
   const [activeCategories, setActiveCategories] = useState(() => new Set(initialCategories)); // empty = all
   const [searchTerm, setSearchTerm] = useState('');
@@ -75,15 +75,25 @@ export default function MapView({ onBack, initialCategories = [] }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   /* ── derived ───────────────────────────────────────────────── */
+  const source = useMemo(() => {
+    if (!city || !city.placeNeedles || city.placeNeedles.length === 0) return NC_MAP_LOCATIONS;
+    const needles = city.placeNeedles.map(name => name.toLowerCase());
+    const local = NC_MAP_LOCATIONS.filter(loc => {
+      const hay = `${loc.name} ${loc.address} ${loc.description}`.toLowerCase();
+      return needles.some(name => hay.includes(name));
+    });
+    return local.length > 0 ? local : NC_MAP_LOCATIONS;
+  }, [city]);
+
   const categories = useMemo(() => {
-    const cats = new Set(NC_MAP_LOCATIONS.map(l => l.category));
+    const cats = new Set(source.map(l => l.category));
     return Array.from(cats).sort();
-  }, []);
+  }, [source]);
 
   // De-stack overlapping coordinates so markers don't pile on each other
   const deStacked = useMemo(() => {
     const seen = {};
-    return NC_MAP_LOCATIONS.map(loc => {
+    return source.map(loc => {
       const key = `${loc.lat},${loc.lng}`;
       if (!seen[key]) { seen[key] = 0; }
       const count = seen[key]++;
@@ -93,7 +103,7 @@ export default function MapView({ onBack, initialCategories = [] }) {
       const r = 0.0008;
       return { ...loc, lat: loc.lat + r * Math.cos(angle), lng: loc.lng + r * Math.sin(angle) };
     });
-  }, []);
+  }, [source]);
 
   const filtered = useMemo(() => {
     let list = deStacked;
@@ -157,7 +167,8 @@ export default function MapView({ onBack, initialCategories = [] }) {
   }, []);
 
   const hasActiveFilters = activeCategories.size > 0 || searchTerm.trim();
-  const ncCenter = [35.55, -79.39];
+  const ncCenter = city && city.mapCenter ? city.mapCenter : [35.55, -79.39];
+  const ncZoom = city && city.mapZoom ? city.mapZoom : 7;
 
   return (
     <div className="mv-page">
@@ -235,12 +246,18 @@ export default function MapView({ onBack, initialCategories = [] }) {
             )}
           </div>
 
+          {city && (
+            <p className="mv-stay-note">
+              Showing published places for {city.placeName}. Statewide places are still in the other version of this check.
+            </p>
+          )}
+
           <h3 className="mv-sidebar-title">Categories</h3>
           <p className="mv-sidebar-hint">Select one or more to filter</p>
 
           <div className="mv-cat-grid">
             {categories.map(cat => {
-              const count = NC_MAP_LOCATIONS.filter(l => l.category === cat).length;
+              const count = source.filter(l => l.category === cat).length;
               const isActive = activeCategories.has(cat);
               return (
                 <button
@@ -261,7 +278,7 @@ export default function MapView({ onBack, initialCategories = [] }) {
           <div className="mv-filter-summary">
             <span className="mv-result-count">
               {filtered.length} result{filtered.length !== 1 ? 's' : ''}
-              {hasActiveFilters ? '' : ` of ${NC_MAP_LOCATIONS.length}`}
+              {hasActiveFilters ? '' : ` of ${source.length}`}
             </span>
             {hasActiveFilters && (
               <button className="mv-clear-btn" onClick={clearFilters}>
@@ -295,7 +312,7 @@ export default function MapView({ onBack, initialCategories = [] }) {
               {filtered.length} location{filtered.length !== 1 ? 's' : ''}
             </div>
 
-            <MapContainer center={ncCenter} zoom={7} className="mv-map" scrollWheelZoom={true}>
+            <MapContainer center={ncCenter} zoom={ncZoom} className="mv-map" scrollWheelZoom={true}>
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

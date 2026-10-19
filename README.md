@@ -4,7 +4,7 @@ A check a person can finish before they take a number at a county office. Federa
 
 North Carolina is the launch state. The catalog is a draft until a state or county office seeds the facts it will stand behind.
 
-Open `#office` for the one-page brief to leave with NCDHHS or a county Department of Social Services.
+Open `#office` for the one-page brief to leave with NCDHHS or a county Department of Social Services. Open `#charlotte` for the City of Charlotte preview, or `#admin` to change that preview's icons and contact information. The preview is stored in the browser. It is not an official City of Charlotte system.
 
 ## Scripts
 

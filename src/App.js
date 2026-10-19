@@ -6,11 +6,19 @@ import ResultsPage from './components/ResultsPage';
 import ThemeToggle from './components/ThemeToggle';
 import MapView from './components/MapView';
 import OfficeBrief from './components/OfficeBrief';
+import CityAdmin from './components/CityAdmin';
+import { activeCity, setActiveCity, useCityConfig } from './cityConfig';
+
+function viewFromHash(hash) {
+  if (hash === '#office') return 'office';
+  if (hash === '#admin') return 'admin';
+  return 'categories';
+}
 
 function App() {
-  const [view, setView] = useState(() => (
-    window.location.hash === '#office' ? 'office' : 'categories'
-  )); // 'categories' | 'onboarding' | 'results' | 'map' | 'office'
+  const cityState = useCityConfig();
+  const city = activeCity(cityState);
+  const [view, setView] = useState(() => viewFromHash(window.location.hash)); // 'categories' | 'onboarding' | 'results' | 'map' | 'office' | 'admin'
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [completedProfile, setCompletedProfile] = useState(null);
   const [mapCategories, setMapCategories] = useState([]);
@@ -23,6 +31,11 @@ function App() {
   function openOffice() {
     window.location.hash = 'office';
     setView('office');
+  }
+
+  function openAdmin() {
+    window.location.hash = 'admin';
+    setView('admin');
   }
 
   function leaveOffice() {
@@ -44,8 +57,37 @@ function App() {
     window.scrollTo(0, 0);
   }, [view]);
 
+  useEffect(() => {
+    if (window.location.hash === '#charlotte') setActiveCity('charlotte');
+    function onHash() {
+      if (window.location.hash === '#charlotte') setActiveCity('charlotte');
+      if (window.location.hash === '#office' || window.location.hash === '#admin') {
+        setView(viewFromHash(window.location.hash));
+      }
+    }
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
   if (view === 'map') {
-    return <><Analytics /><ThemeToggle /><MapView onBack={() => setView('categories')} initialCategories={mapCategories} /></>;
+    return <><Analytics /><ThemeToggle /><MapView onBack={() => setView('categories')} initialCategories={mapCategories} city={city} /></>;
+  }
+
+  if (view === 'admin') {
+    return (
+      <>
+        <Analytics />
+        <ThemeToggle />
+        <CityAdmin
+          onBack={leaveOffice}
+          onPreview={(activeId) => {
+            if (activeId === 'charlotte') window.location.hash = 'charlotte';
+            else window.history.replaceState(null, '', window.location.pathname + window.location.search);
+            setView('categories');
+          }}
+        />
+      </>
+    );
   }
 
   if (view === 'office') {
@@ -63,7 +105,7 @@ function App() {
   }
 
   if (view === 'categories') {
-    return <><Analytics /><ThemeToggle /><CategorySelector onApply={handleCategoryApply} onOpenMap={() => openMap()} onOpenCamp={() => openMap(['campground', 'safe_parking'])} onOpenOffice={openOffice} /></>;
+    return <><Analytics /><ThemeToggle /><CategorySelector onApply={handleCategoryApply} onOpenMap={() => openMap()} onOpenCamp={() => openMap(['campground', 'safe_parking'])} onOpenOffice={openOffice} onOpenAdmin={openAdmin} /></>;
   }
 
   if (view === 'onboarding') {

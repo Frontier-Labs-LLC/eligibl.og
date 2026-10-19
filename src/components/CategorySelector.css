@@ -55,6 +55,62 @@
   letter-spacing: 0.02em;
 }
 
+.cs-city {
+  margin: 18px auto 0;
+  max-width: 40rem;
+  text-align: left;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.cs-city p { margin: 0 0 8px; }
+
+.cs-city-name {
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.cs-city a {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.cs-city-icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+.cs-city-icons li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.cs-city-icons svg {
+  width: 18px;
+  height: 18px;
+  color: var(--primary);
+}
+
+.cs-city-note {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
 /* ── Section header row ────────────────────────────────── */
 .cs-section-header {
   display: flex;
