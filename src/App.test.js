@@ -1,13 +1,15 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
 import NC_PROGRAMS from './data/nc-programs';
 import NC_CAMP_PARKING from './data/nc-camp-parking';
 import { resetCityStore } from './cityConfig';
+import useOnboardingStore from './store/useOnboardingStore';
 
 beforeEach(() => {
   localStorage.clear();
   resetCityStore();
+  useOnboardingStore.getState().reset();
   document.documentElement.removeAttribute('data-theme');
   window.history.replaceState(null, '', '/');
 });
@@ -79,6 +81,96 @@ test('the charlotte address opens that preview', () => {
   render(<App />);
   expect(screen.getByText('City of Charlotte')).toBeInTheDocument();
   expect(screen.getByText(/301 Billingsley Rd/i)).toBeInTheDocument();
+});
+
+function jsonResponse(body) {
+  return {
+    ok: true,
+    status: 200,
+    headers: { get: () => 'application/json' },
+    json: () => Promise.resolve(body),
+  };
+}
+
+function startTheCheck() {
+  userEvent.click(screen.getByRole('button', { name: /^food/i }));
+  userEvent.click(screen.getByRole('button', { name: /find programs in 1 selected category/i }));
+}
+
+test('the form asks which state you live in before anything else', () => {
+  render(<App />);
+  startTheCheck();
+
+  expect(screen.getByRole('heading', { name: /your location/i })).toBeInTheDocument();
+  const picker = screen.getByRole('combobox', { name: /your state/i });
+  expect(screen.getAllByRole('option')).toHaveLength(52); // placeholder + 50 states + DC
+  expect(screen.getByRole('option', { name: 'Wyoming' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /continue to step 2/i })).toBeDisabled();
+
+  userEvent.selectOptions(picker, 'TX');
+  expect(screen.getByText(/Texas: we'll check 6 Texas programs plus/i)).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /continue to step 2/i })).toBeEnabled();
+});
+
+test('a Texas resident gets Texas programs and no North Carolina map', async () => {
+  render(<App />);
+  startTheCheck();
+  userEvent.selectOptions(screen.getByRole('combobox', { name: /your state/i }), 'TX');
+  userEvent.click(screen.getByRole('button', { name: /continue to step 2/i }));
+
+  userEvent.type(screen.getByPlaceholderText('e.g. 34'), '34');
+  userEvent.click(screen.getByRole('button', { name: /^U\.S\. Citizen/ }));
+  userEvent.click(screen.getByRole('button', { name: /continue to step 3/i }));
+  userEvent.click(screen.getByRole('button', { name: /continue to step 4/i }));
+
+  userEvent.type(screen.getByPlaceholderText('0'), '1800');
+  userEvent.click(screen.getByRole('button', { name: /continue to step 5/i }));
+  userEvent.click(screen.getByRole('button', { name: /continue to step 6/i }));
+  userEvent.click(screen.getByRole('button', { name: /find my programs/i }));
+
+  expect(await screen.findByText(/based on your answers for Texas/i)).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: /^SNAP Food Benefits$/ })).toBeInTheDocument();
+  expect(screen.queryByText(/NC Medicaid/)).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /view nc resource map/i })).not.toBeInTheDocument();
+});
+
+test('the front page does not show a visitor count', async () => {
+  global.fetch = jest.fn().mockResolvedValue(jsonResponse({ ok: true, started: 12345, completed: 9000 }));
+  render(<App />);
+  expect(screen.getByRole('heading', { name: /find benefits by category/i })).toBeInTheDocument();
+  await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
+  expect(screen.queryByText(/people have used/i)).not.toBeInTheDocument();
+  expect(screen.queryByText('12,345')).not.toBeInTheDocument();
+  expect(global.fetch).not.toHaveBeenCalled();
+});
+
+test('admin shows the live visitor counts and nothing else', async () => {
+  global.fetch = jest.fn().mockResolvedValue(jsonResponse({ ok: true, started: 4, completed: 1 }));
+  window.location.hash = '#admin';
+  render(<App />);
+
+  expect(await screen.findByRole('heading', { name: /^usage$/i })).toBeInTheDocument();
+  expect(await screen.findByText('Started the form')).toBeInTheDocument();
+  expect(screen.getByText('4')).toBeInTheDocument();
+  expect(screen.getByText('Finished and saw programs')).toBeInTheDocument();
+  expect(screen.getByText('1')).toBeInTheDocument();
+  expect(screen.getByText(/25% of the people who started also finished/i)).toBeInTheDocument();
+  expect(screen.queryByText(/people have used eligibl/i)).not.toBeInTheDocument();
+});
+
+test('admin names the env vars when the counter is not connected', async () => {
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: false,
+    status: 503,
+    headers: { get: () => 'application/json' },
+    json: () => Promise.resolve({ ok: false, configured: false }),
+  });
+  window.location.hash = '#admin';
+  render(<App />);
+
+  expect(await screen.findByText(/KV_REST_API_URL/)).toBeInTheDocument();
+  expect(screen.getByText(/UPSTASH_REDIS_REST_URL/)).toBeInTheDocument();
+  expect(screen.queryByText('0')).not.toBeInTheDocument();
 });
 
 test('the brief can return to the resident check', () => {

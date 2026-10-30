@@ -387,7 +387,7 @@
 .rp-empty-reset {
   padding: 10px 24px;
   background: var(--primary);
-  color: var(--card);
+  color: var(--on-primary);
   border: none;
   border-radius: 8px;
   font-weight: 700;
@@ -623,7 +623,7 @@
 .rp-btn-apply {
   padding: 14px 24px;
   background: var(--primary);
-  color: var(--card);
+  color: var(--on-primary);
   border: none;
   border-radius: 10px;
   font-size: 0.92rem;

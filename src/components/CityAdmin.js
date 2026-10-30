@@ -9,6 +9,7 @@ import {
   useCityConfig,
 } from '../cityConfig';
 import CityIcon from './CityIcons';
+import VisitorAnalytics from './VisitorAnalytics';
 import './CityAdmin.css';
 
 const FIELDS = [
@@ -66,6 +67,8 @@ export default function CityAdmin({ onBack, onPreview }) {
           </button>
           <p>City configuration</p>
         </header>
+
+        <VisitorAnalytics />
 
         <h1>Configure the Charlotte preview</h1>
         <p className="ca-lede">
