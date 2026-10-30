@@ -1,8 +1,6 @@
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
-import NC_PROGRAMS from './data/nc-programs';
-import NC_CAMP_PARKING from './data/nc-camp-parking';
 import { resetCityStore } from './cityConfig';
 import useOnboardingStore from './store/useOnboardingStore';
 
@@ -17,39 +15,9 @@ beforeEach(() => {
 test('opens on the resident category check', () => {
   render(<App />);
   expect(screen.getByRole('heading', { name: /find benefits by category/i })).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: /state offices/i })).toBeInTheDocument();
-});
-
-test('state office brief asks North Carolina to seed, using the live catalog', () => {
-  render(<App />);
-  userEvent.click(screen.getByRole('button', { name: /state offices/i }));
-
-  expect(screen.getByRole('heading', { name: /seed the facts/i })).toBeInTheDocument();
-  expect(screen.getByText(/NCDHHS/i)).toBeInTheDocument();
-  expect(screen.getByText(/not a decision/i)).toBeInTheDocument();
-  expect(screen.getByText(String(NC_PROGRAMS.length))).toBeInTheDocument();
-  expect(screen.getByRole('rowheader', { name: /work first/i })).toBeInTheDocument();
-  expect(screen.getAllByText(/draft\. not supplied by your office/i).length).toBeGreaterThan(0);
-});
-
-test('public campgrounds and safe parking open on the map', () => {
-  render(<App />);
-  userEvent.click(screen.getByRole('button', { name: /public campgrounds and safe parking/i }));
-
-  expect(screen.getByText(/Father's Storehouse safe parking/i)).toBeInTheDocument();
-  expect(screen.getByText(/Carolina Beach State Park/i)).toBeInTheDocument();
-  expect(screen.getByText(/NCDOT rest areas and welcome centers are not overnight parking/i)).toBeInTheDocument();
-  expect(screen.queryByText(/Food Bank of Central/i)).not.toBeInTheDocument();
-  expect(screen.queryByText(/Cole Mill Access/i)).not.toBeInTheDocument();
-  expect(NC_CAMP_PARKING.filter((place) => place.category === 'campground').length).toBeGreaterThan(40);
-  expect(NC_CAMP_PARKING.filter((place) => place.category === 'safe_parking')).toHaveLength(1);
-  NC_CAMP_PARKING.forEach((place) => {
-    expect(place.lat).toBeGreaterThan(33.7);
-    expect(place.lat).toBeLessThan(36.7);
-    expect(place.lng).toBeLessThan(-75.3);
-    expect(place.lng).toBeGreaterThan(-84.4);
-    expect(place.address).toMatch(/NC/);
-  });
+  expect(screen.queryByRole('button', { name: /state offices/i })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /public campgrounds/i })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /city preview/i })).not.toBeInTheDocument();
 });
 
 test('opens in dark mode without asking', () => {
@@ -58,22 +26,17 @@ test('opens in dark mode without asking', () => {
   expect(screen.getByRole('button', { name: /switch to light mode/i })).toBeInTheDocument();
 });
 
-test('a Charlotte preview is configured from the admin route', () => {
+test('the admin and office addresses stay on the resident check', () => {
   window.location.hash = '#admin';
-  render(<App />);
-
-  expect(screen.getByRole('heading', { name: /configure the charlotte preview/i })).toBeInTheDocument();
-  expect(screen.getByText(/not an official city of charlotte system/i)).toBeInTheDocument();
-
-  const phone = screen.getByLabelText(/office phone/i);
-  userEvent.clear(phone);
-  userEvent.type(phone, '980-314-5501');
-  userEvent.click(screen.getByRole('button', { name: /show the charlotte version/i }));
-
+  const { unmount } = render(<App />);
   expect(screen.getByRole('heading', { name: /find benefits by category/i })).toBeInTheDocument();
-  expect(screen.getByText('City of Charlotte')).toBeInTheDocument();
-  expect(screen.getByText('980-314-5501')).toBeInTheDocument();
-  expect(screen.getByText(/not an official city of charlotte system/i)).toBeInTheDocument();
+  expect(screen.queryByRole('heading', { name: /configure the charlotte preview/i })).not.toBeInTheDocument();
+  unmount();
+
+  window.location.hash = '#office';
+  render(<App />);
+  expect(screen.getByRole('heading', { name: /find benefits by category/i })).toBeInTheDocument();
+  expect(screen.queryByRole('heading', { name: /seed the facts/i })).not.toBeInTheDocument();
 });
 
 test('the charlotte address opens that preview', () => {
@@ -134,48 +97,19 @@ test('a Texas resident gets Texas programs and no North Carolina map', async () 
   expect(screen.queryByRole('button', { name: /view nc resource map/i })).not.toBeInTheDocument();
 });
 
-test('the front page does not show a visitor count', async () => {
-  global.fetch = jest.fn().mockResolvedValue(jsonResponse({ ok: true, started: 12345, completed: 9000 }));
+test('the front page pill shows how many people tried the form', async () => {
+  global.fetch = jest.fn().mockResolvedValue(jsonResponse({ ok: true, started: 4, completed: 1 }));
+  render(<App />);
+
+  expect(await screen.findByRole('status')).toHaveTextContent('4 people have tried the form');
+  expect(global.fetch).toHaveBeenCalledWith('/api/visitors', expect.objectContaining({ method: 'GET' }));
+  expect(screen.queryByText('1')).not.toBeInTheDocument();
+});
+
+test('the pill stays hidden when the database count is unavailable', async () => {
   render(<App />);
   expect(screen.getByRole('heading', { name: /find benefits by category/i })).toBeInTheDocument();
   await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
-  expect(screen.queryByText(/people have used/i)).not.toBeInTheDocument();
-  expect(screen.queryByText('12,345')).not.toBeInTheDocument();
-  expect(global.fetch).not.toHaveBeenCalled();
-});
-
-test('admin shows the live visitor counts and nothing else', async () => {
-  global.fetch = jest.fn().mockResolvedValue(jsonResponse({ ok: true, started: 4, completed: 1 }));
-  window.location.hash = '#admin';
-  render(<App />);
-
-  expect(await screen.findByRole('heading', { name: /^usage$/i })).toBeInTheDocument();
-  expect(await screen.findByText('Started the form')).toBeInTheDocument();
-  expect(screen.getByText('4')).toBeInTheDocument();
-  expect(screen.getByText('Finished and saw programs')).toBeInTheDocument();
-  expect(screen.getByText('1')).toBeInTheDocument();
-  expect(screen.getByText(/25% of the people who started also finished/i)).toBeInTheDocument();
-  expect(screen.queryByText(/people have used eligibl/i)).not.toBeInTheDocument();
-});
-
-test('admin names the env vars when the counter is not connected', async () => {
-  global.fetch = jest.fn().mockResolvedValue({
-    ok: false,
-    status: 503,
-    headers: { get: () => 'application/json' },
-    json: () => Promise.resolve({ ok: false, configured: false }),
-  });
-  window.location.hash = '#admin';
-  render(<App />);
-
-  expect(await screen.findByText(/KV_REST_API_URL/)).toBeInTheDocument();
-  expect(screen.getByText(/UPSTASH_REDIS_REST_URL/)).toBeInTheDocument();
-  expect(screen.queryByText('0')).not.toBeInTheDocument();
-});
-
-test('the brief can return to the resident check', () => {
-  render(<App />);
-  userEvent.click(screen.getByRole('button', { name: /state offices/i }));
-  userEvent.click(screen.getByRole('button', { name: /run the resident check/i }));
-  expect(screen.getByRole('heading', { name: /find benefits by category/i })).toBeInTheDocument();
+  expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  expect(screen.queryByText(/tried the form/i)).not.toBeInTheDocument();
 });

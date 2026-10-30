@@ -9,8 +9,8 @@
  * Vercel Marketplace Upstash/KV integration (KV_REST_API_URL / KV_REST_API_TOKEN)
  * or a plain Upstash database (UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN).
  *
- * When no Redis is configured the function answers 503. The public site shows
- * no count. /#admin then says which environment variables are missing.
+ * When no Redis is configured the function answers 503 and the front-page
+ * pill stays hidden. It never shows a stand-in number.
  */
 
 const EVENTS = ['started', 'completed'];
