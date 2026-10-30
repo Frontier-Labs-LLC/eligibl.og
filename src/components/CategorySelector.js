@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { CITY_DISCLAIMER, activeCity, useCityConfig } from '../cityConfig';
 import CityIcon from './CityIcons';
-import HelpedPill from './HelpedPill';
 import './CategorySelector.css';
 
 const CATEGORIES = [
@@ -211,7 +210,6 @@ export default function CategorySelector({ onApply, onOpenMap, onOpenCamp, onOpe
             <span className="cs-logo-e" aria-hidden="true">E</span>ligibl
           </div>
           <p className="cs-tagline">{city ? city.tagline : 'Federal & state aid — found fast. All 50 states.'}</p>
-          <HelpedPill />
           {city && (
             <div className="cs-city">
               <p className="cs-city-name">{city.placeName}</p>

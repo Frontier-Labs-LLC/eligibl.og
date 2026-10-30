@@ -64,11 +64,14 @@ test('unknown events and HTML fallbacks are ignored', async () => {
   expect(global.fetch).not.toHaveBeenCalled();
 
   global.fetch.mockResolvedValueOnce(htmlResponse());
-  expect(await fetchVisitorCounts()).toBeNull();
+  expect(await fetchVisitorCounts()).toEqual({ status: 'unavailable', counts: null });
 
   global.fetch.mockRejectedValueOnce(new Error('offline'));
-  expect(await fetchVisitorCounts()).toBeNull();
+  expect(await fetchVisitorCounts()).toEqual({ status: 'unavailable', counts: null });
 
-  global.fetch.mockResolvedValueOnce(jsonResponse({ ok: true, started: 1234, completed: 900 }));
-  expect(await fetchVisitorCounts()).toEqual({ started: 1234, completed: 900 });
+  global.fetch.mockResolvedValueOnce(jsonResponse({ ok: false, configured: false }, 503));
+  expect(await fetchVisitorCounts()).toEqual({ status: 'unconfigured', counts: null });
+
+  global.fetch.mockResolvedValueOnce(jsonResponse({ ok: true, started: 0, completed: 0 }));
+  expect(await fetchVisitorCounts()).toEqual({ status: 'ready', counts: { started: 0, completed: 0 } });
 });

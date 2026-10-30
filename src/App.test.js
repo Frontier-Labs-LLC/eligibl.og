@@ -134,25 +134,43 @@ test('a Texas resident gets Texas programs and no North Carolina map', async () 
   expect(screen.queryByRole('button', { name: /view nc resource map/i })).not.toBeInTheDocument();
 });
 
-test('the front page shows how many people have used the check', async () => {
+test('the front page does not show a visitor count', async () => {
   global.fetch = jest.fn().mockResolvedValue(jsonResponse({ ok: true, started: 12345, completed: 9000 }));
-  render(<App />);
-  expect(await screen.findByText('12,345')).toBeInTheDocument();
-  expect(screen.getByRole('status')).toHaveTextContent(/people have used eligibl\.org to find aid programs/i);
-  expect(global.fetch).toHaveBeenCalledWith('/api/visitors', expect.objectContaining({ method: 'GET' }));
-
-  startTheCheck();
-  const posts = global.fetch.mock.calls.filter(([, options]) => options && options.method === 'POST');
-  expect(posts).toHaveLength(1);
-  expect(JSON.parse(posts[0][1].body)).toMatchObject({ event: 'started' });
-});
-
-test('the pill stays hidden when the counter is not available', async () => {
   render(<App />);
   expect(screen.getByRole('heading', { name: /find benefits by category/i })).toBeInTheDocument();
   await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
-  expect(global.fetch).toHaveBeenCalled();
-  expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  expect(screen.queryByText(/people have used/i)).not.toBeInTheDocument();
+  expect(screen.queryByText('12,345')).not.toBeInTheDocument();
+  expect(global.fetch).not.toHaveBeenCalled();
+});
+
+test('admin shows the live visitor counts and nothing else', async () => {
+  global.fetch = jest.fn().mockResolvedValue(jsonResponse({ ok: true, started: 4, completed: 1 }));
+  window.location.hash = '#admin';
+  render(<App />);
+
+  expect(await screen.findByRole('heading', { name: /^usage$/i })).toBeInTheDocument();
+  expect(await screen.findByText('Started the form')).toBeInTheDocument();
+  expect(screen.getByText('4')).toBeInTheDocument();
+  expect(screen.getByText('Finished and saw programs')).toBeInTheDocument();
+  expect(screen.getByText('1')).toBeInTheDocument();
+  expect(screen.getByText(/25% of the people who started also finished/i)).toBeInTheDocument();
+  expect(screen.queryByText(/people have used eligibl/i)).not.toBeInTheDocument();
+});
+
+test('admin names the env vars when the counter is not connected', async () => {
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: false,
+    status: 503,
+    headers: { get: () => 'application/json' },
+    json: () => Promise.resolve({ ok: false, configured: false }),
+  });
+  window.location.hash = '#admin';
+  render(<App />);
+
+  expect(await screen.findByText(/KV_REST_API_URL/)).toBeInTheDocument();
+  expect(screen.getByText(/UPSTASH_REDIS_REST_URL/)).toBeInTheDocument();
+  expect(screen.queryByText('0')).not.toBeInTheDocument();
 });
 
 test('the brief can return to the resident check', () => {

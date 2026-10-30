@@ -94,31 +94,41 @@ export function recordVisitorEvent(event) {
     .catch(() => null);
 }
 
-/** Fetch the current counts, or null when the API is not configured/reachable. */
+/**
+ * Fetch the live counts.
+ * status is 'ready' (counts may be 0), 'unconfigured' (Redis env vars missing),
+ * or 'unavailable' (the API could not be reached).
+ */
 export function fetchVisitorCounts() {
-  if (typeof fetch !== 'function') return Promise.resolve(null);
+  if (typeof fetch !== 'function') return Promise.resolve({ status: 'unavailable', counts: null });
   return fetch(VISITOR_API, { method: 'GET', headers: { Accept: 'application/json' } })
     .then(async (response) => {
-      if (!response.ok) return null;
-      return parseCounts(await readJson(response));
+      const data = await readJson(response);
+      if (response.status === 503 && data && data.configured === false) {
+        return { status: 'unconfigured', counts: null };
+      }
+      const counts = response.ok ? parseCounts(data) : null;
+      if (!counts) return { status: 'unavailable', counts: null };
+      return { status: 'ready', counts };
     })
-    .catch(() => null);
+    .catch(() => ({ status: 'unavailable', counts: null }));
 }
 
 /**
- * React hook: { status: 'loading' | 'ready', counts }.
- * Stays in 'loading' (nothing rendered) when the API is unavailable.
+ * React hook: { status, counts, refresh }.
+ * status is 'loading' until the first response arrives.
  */
 export function useVisitorCounts() {
+  const [tick, setTick] = useState(0);
   const [state, setState] = useState({ status: 'loading', counts: null });
 
   useEffect(() => {
     let cancelled = false;
-    fetchVisitorCounts().then((counts) => {
-      if (!cancelled && counts) setState({ status: 'ready', counts });
+    fetchVisitorCounts().then((next) => {
+      if (!cancelled) setState(next);
     });
     return () => { cancelled = true; };
-  }, []);
+  }, [tick]);
 
-  return state;
+  return { ...state, refresh: () => setTick((n) => n + 1) };
 }
