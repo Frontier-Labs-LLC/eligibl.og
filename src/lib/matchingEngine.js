@@ -53,7 +53,7 @@ export function evaluateProgram(profile, program) {
   const rules = program.rules;
 
   // ── 0. STATE ELIGIBILITY — hard exclude ──────────────────────────────────
-  // If program.state is set, the program is state-specific (e.g. 'NC').
+  // If program.state is set, the program is state-specific (e.g. 'NC', 'TX').
   // Only show it to users in that state.
   if (program.state) {
     if (profile.residentState && profile.residentState !== program.state) {
@@ -343,7 +343,8 @@ export function evaluateProgram(profile, program) {
   }
 
   // ── 11. CURRENTLY RECEIVING THIS PROGRAM ────────────────────────────────
-  if (profile.currentBenefits && profile.currentBenefits.includes(mapBenefitKey(program.id))) {
+  const benefitKey = program.benefitKey || mapBenefitKey(program.id);
+  if (benefitKey && profile.currentBenefits && profile.currentBenefits.includes(benefitKey)) {
     return {
       program,
       confidence: CONFIDENCE.NO,
@@ -389,7 +390,8 @@ function checkIncome(profile, program) {
 
   const income = parseFloat(profile.monthlyIncome);
   const householdSize = profile.householdSize || 1;
-  const state = profile.residentState || 'TX';
+  // FPL only differs for Alaska and Hawaii; any other code uses the base table.
+  const state = profile.residentState || '';
 
   if (rules.incomeLimitType === 'fpl_percent') {
     const fplPercent = getIncomeAsFPLPercent(income, householdSize, state);

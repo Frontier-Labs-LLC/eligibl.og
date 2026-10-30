@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import useOnboardingStore from '../store/useOnboardingStore';
 import { activeCity, useCityConfig } from '../cityConfig';
+import { US_STATES, getStateName } from '../data/stateFacts';
+import { getStatePrograms } from '../data/statePrograms';
+import PROGRAMS from '../data/programs';
+import { recordVisitorEvent } from '../lib/visitorCount';
 import './OnboardingForm.css';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -8,43 +12,12 @@ import './OnboardingForm.css';
 const TOTAL_STEPS = 6;
 
 const STEP_META = [
-  { number: 1, title: 'Your Location',        subtitle: 'Eligibl currently serves North Carolina residents.' },
+  { number: 1, title: 'Your Location',        subtitle: 'Aid programs differ by state. Tell us where you live so we check the right rules.' },
   { number: 2, title: 'About You',             subtitle: 'Basic information used to check program requirements.' },
   { number: 3, title: 'Your Household',        subtitle: 'Who you live with affects eligibility for many programs.' },
   { number: 4, title: 'Income & Employment',   subtitle: 'Most programs use income to determine eligibility.' },
   { number: 5, title: 'Your Housing',          subtitle: 'Your housing situation unlocks specific programs.' },
   { number: 6, title: 'A Few More Details',    subtitle: 'Last step — just a few more things that matter.' },
-];
-
-// US_STATES kept for future multi-state expansion
-// eslint-disable-next-line no-unused-vars
-const US_STATES = [
-  { code: 'AL', name: 'Alabama' },       { code: 'AK', name: 'Alaska' },
-  { code: 'AZ', name: 'Arizona' },       { code: 'AR', name: 'Arkansas' },
-  { code: 'CA', name: 'California' },    { code: 'CO', name: 'Colorado' },
-  { code: 'CT', name: 'Connecticut' },   { code: 'DE', name: 'Delaware' },
-  { code: 'DC', name: 'District of Columbia' },
-  { code: 'FL', name: 'Florida' },       { code: 'GA', name: 'Georgia' },
-  { code: 'HI', name: 'Hawaii' },        { code: 'ID', name: 'Idaho' },
-  { code: 'IL', name: 'Illinois' },      { code: 'IN', name: 'Indiana' },
-  { code: 'IA', name: 'Iowa' },          { code: 'KS', name: 'Kansas' },
-  { code: 'KY', name: 'Kentucky' },      { code: 'LA', name: 'Louisiana' },
-  { code: 'ME', name: 'Maine' },         { code: 'MD', name: 'Maryland' },
-  { code: 'MA', name: 'Massachusetts' }, { code: 'MI', name: 'Michigan' },
-  { code: 'MN', name: 'Minnesota' },     { code: 'MS', name: 'Mississippi' },
-  { code: 'MO', name: 'Missouri' },      { code: 'MT', name: 'Montana' },
-  { code: 'NE', name: 'Nebraska' },      { code: 'NV', name: 'Nevada' },
-  { code: 'NH', name: 'New Hampshire' }, { code: 'NJ', name: 'New Jersey' },
-  { code: 'NM', name: 'New Mexico' },    { code: 'NY', name: 'New York' },
-  { code: 'NC', name: 'North Carolina' },{ code: 'ND', name: 'North Dakota' },
-  { code: 'OH', name: 'Ohio' },          { code: 'OK', name: 'Oklahoma' },
-  { code: 'OR', name: 'Oregon' },        { code: 'PA', name: 'Pennsylvania' },
-  { code: 'RI', name: 'Rhode Island' },  { code: 'SC', name: 'South Carolina' },
-  { code: 'SD', name: 'South Dakota' },  { code: 'TN', name: 'Tennessee' },
-  { code: 'TX', name: 'Texas' },         { code: 'UT', name: 'Utah' },
-  { code: 'VT', name: 'Vermont' },       { code: 'VA', name: 'Virginia' },
-  { code: 'WA', name: 'Washington' },    { code: 'WV', name: 'West Virginia' },
-  { code: 'WI', name: 'Wisconsin' },     { code: 'WY', name: 'Wyoming' },
 ];
 
 // ── Reusable UI primitives ───────────────────────────────────────────────────
@@ -147,22 +120,42 @@ function MoneyInput({ value, onChange, placeholder = '0', suffix = '/ month' }) 
 
 // ── Step 1: Location ─────────────────────────────────────────────────────────
 
-function StepLocation({ store }) {
+function StepLocation({ store, city }) {
+  // A city preview is always a North Carolina preview; start it on NC.
   useEffect(() => {
-    if (store.residentState !== 'NC') store.set('residentState', 'NC');
+    if (city && !store.residentState) store.set('residentState', 'NC');
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const code = store.residentState;
+  const stateName = getStateName(code);
+  const stateCount = code ? getStatePrograms(code).length : 0;
 
   return (
     <div className="of-step-content">
       <div className="of-field-group">
-        <SectionLabel note="Eligibl is launching in North Carolina first. More states are coming soon!">
-          Your State
+        <SectionLabel note="Medicaid, SNAP, cash assistance, energy help, and child care rules are set by each state. Eligibl covers all 50 states and Washington, DC.">
+          Which state do you live in?
         </SectionLabel>
-        <div className="of-location-locked" aria-label="State locked to North Carolina">
-          <span aria-hidden="true">📍</span>
-          <span>North Carolina</span>
-        </div>
-        <p className="of-field-hint">✅ You're in our launch region — let's find what you qualify for!</p>
+        <select
+          id="of-state"
+          className="of-select"
+          value={code}
+          onChange={e => store.set('residentState', e.target.value)}
+          aria-label="Your state"
+          required
+        >
+          <option value="">Choose your state…</option>
+          {US_STATES.map(s => (
+            <option key={s.code} value={s.code}>{s.name}</option>
+          ))}
+        </select>
+        {code ? (
+          <p className="of-field-hint of-field-hint--ok" aria-live="polite">
+            ✅ {stateName}: we'll check {stateCount} {stateName} program{stateCount === 1 ? '' : 's'} plus {PROGRAMS.length} federal programs.
+          </p>
+        ) : (
+          <p className="of-field-hint">Pick your state to continue — it's the only required question.</p>
+        )}
       </div>
     </div>
   );
@@ -598,7 +591,7 @@ function StepDetails({ store }) {
       </div>
 
       <div className="of-field-group">
-        <SectionLabel note="SBA loans, microloans, and NC-specific business programs are available to small business owners and founders.">
+        <SectionLabel note="SBA loans, microloans, and state business programs are available to small business owners and founders.">
           Do you own or are you looking to start a small business?
         </SectionLabel>
         <YesNo value={store.isBusinessOwner} onChange={v => store.set('isBusinessOwner', v)} />
@@ -644,13 +637,19 @@ export default function OnboardingForm({ selectedCategories, onComplete }) {
   const city = activeCity(useCityConfig());
   const current   = STEP_META[currentStep - 1];
   const stepSubtitle = current.number === 1 && city
-    ? `This preview is configured for ${city.placeName}. Programs are still North Carolina programs.`
+    ? `This preview is configured for ${city.placeName}. Confirm your state below.`
     : current.subtitle;
   const progress  = (currentStep / TOTAL_STEPS) * 100;
   const isLastStep = currentStep === TOTAL_STEPS;
 
+  // Count each person once, the first time they reach the form.
+  useEffect(() => {
+    recordVisitorEvent('started');
+  }, []);
+
   function canProceed() {
-    return true; // Step 1 is locked to NC — always ready to proceed
+    // The state is the only required answer; every program is filtered by it.
+    return Boolean(store.residentState);
   }
 
   function goNext() {
@@ -704,12 +703,13 @@ export default function OnboardingForm({ selectedCategories, onComplete }) {
       isBusinessOwner:        store.isBusinessOwner,
       currentBenefits:        store.currentBenefits,
     };
+    recordVisitorEvent('completed');
     onComplete(profile);
   }
 
   function renderStep() {
     switch (currentStep) {
-      case 1: return <StepLocation  store={store} />;
+      case 1: return <StepLocation  store={store} city={city} />;
       case 2: return <StepAboutYou  store={store} />;
       case 3: return <StepHousehold store={store} />;
       case 4: return <StepIncome    store={store} />;
@@ -787,11 +787,11 @@ export default function OnboardingForm({ selectedCategories, onComplete }) {
               )}
             </div>
             <div className="of-nav-right">
-              {currentStep > 1 && (
-                <p className="of-nav-hint">
-                  {isLastStep ? 'Ready to see your matches!' : 'All questions are optional except your state.'}
-                </p>
-              )}
+              <p className="of-nav-hint">
+                {currentStep === 1
+                  ? (store.residentState ? 'Everything after this is optional.' : 'Choose your state to continue.')
+                  : isLastStep ? 'Ready to see your matches!' : 'All questions are optional except your state.'}
+              </p>
               <button
                 type="button"
                 className="of-btn-next"

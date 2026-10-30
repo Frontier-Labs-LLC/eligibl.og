@@ -1,6 +1,7 @@
 import PROGRAMS from '../data/programs';
 import NC_PROGRAMS from '../data/nc-programs';
 import NC_MAP_LOCATIONS from '../data/nc-map-data';
+import { STATE_COUNT } from '../data/statePrograms';
 import './OfficeBrief.css';
 
 const SEED_FIRST = ['snap', 'nc-medicaid', 'nc-work-first', 'nc-child-care-subsidy', 'nc-cip'];
@@ -46,6 +47,10 @@ export default function OfficeBrief({ onBack, onRunCheck, onOpenMap }) {
           <div>
             <dt>Places on the NC resource map</dt>
             <dd>{NC_MAP_LOCATIONS.length}</dd>
+          </div>
+          <div>
+            <dt>States with headline programs in the draft</dt>
+            <dd>{STATE_COUNT}</dd>
           </div>
         </dl>
 

@@ -549,18 +549,10 @@
   box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 37, 99, 235), 0.12);
 }
 
-/* ── NC launch: locked location display ─────────────────────────────────── */
-.of-location-locked {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 20px;
-  background: var(--primary-bg);
-  border: 2px solid var(--primary);
-  border-radius: 12px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--primary-dark);
+/* ── State confirmation hint ─────────────────────────────────────────────── */
+.of-field-hint--ok {
+  color: var(--success-text);
+  font-weight: 600;
 }
 
 /* ── Conditional sections ────────────────────────────────────────────────── */

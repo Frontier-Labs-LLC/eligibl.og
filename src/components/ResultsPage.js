@@ -3,6 +3,7 @@ import { matchPrograms, getConfidenceLabel, getConfidenceColor } from '../lib/ma
 import { CITY_DISCLAIMER, activeCity, useCityConfig } from '../cityConfig';
 import PROGRAMS from '../data/programs';
 import { getStatePrograms } from '../data/statePrograms';
+import { getStateName } from '../data/stateFacts';
 import './ResultsPage.css';
 
 // Maps CategorySelector category IDs → program category strings
@@ -108,6 +109,9 @@ export default function ResultsPage({ profile, selectedCategories, onStartOver, 
 
   const likelyCount   = categoryFilteredResults.filter(r => r.confidence === 'likely').length;
   const possiblyCount = categoryFilteredResults.filter(r => r.confidence === 'possibly').length;
+  const stateName     = getStateName(profile.residentState);
+  // The resource map only has North Carolina places so far.
+  const showMap       = Boolean(onOpenMap) && profile.residentState === 'NC';
 
   function toggleExpand(id) {
     setExpandedId(prev => (prev === id ? null : id));
@@ -122,7 +126,7 @@ export default function ResultsPage({ profile, selectedCategories, onStartOver, 
         <header className="rp-header">
           <div className="rp-logo" aria-label="Eligibl"><span className="rp-logo-e" aria-hidden="true">E</span>ligibl</div>
           <div className="rp-header-actions">
-            {onOpenMap && (
+            {showMap && (
               <button type="button" className="rp-map-btn" onClick={onOpenMap} aria-label="View NC resource map">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /><line x1="8" y1="2" x2="8" y2="18" /><line x1="16" y1="6" x2="16" y2="22" /></svg>
                 Map
@@ -145,7 +149,7 @@ export default function ResultsPage({ profile, selectedCategories, onStartOver, 
             We found <span className="rp-hero-count">{categoryFilteredResults.length} programs</span> you may qualify for
           </h1>
           <p className="rp-hero-sub">
-            Based on your answers —{' '}
+            Based on your answers{stateName ? ` for ${stateName}` : ''} —{' '}
             <strong className="rp-likely">{likelyCount} likely</strong>{' '}
             and{' '}
             <strong className="rp-possibly">{possiblyCount} possibly eligible</strong>.
@@ -157,6 +161,7 @@ export default function ResultsPage({ profile, selectedCategories, onStartOver, 
             </p>
           )}
           <div className="rp-badges">
+            {stateName && <span className="rp-badge rp-badge--blue">📍 {stateName}</span>}
             <span className="rp-badge rp-badge--green">🔒 Anonymous</span>
             <span className="rp-badge rp-badge--blue">✓ Official .gov sources only</span>
             <span className="rp-badge rp-badge--gray">No SSN required to use this tool</span>
