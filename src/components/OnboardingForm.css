@@ -96,14 +96,14 @@
 .of-progress-dot--active {
   border-color: var(--primary);
   background: var(--primary);
-  color: var(--card);
+  color: var(--on-primary);
   box-shadow: 0 0 0 4px rgba(var(--primary-rgb, 37, 99, 235), 0.15);
 }
 
 .of-progress-dot--done {
   border-color: var(--success);
   background: var(--success);
-  color: var(--card);
+  color: var(--on-primary);
   cursor: pointer;
 }
 
@@ -300,7 +300,7 @@
 .of-option-check svg {
   width: 11px;
   height: 11px;
-  stroke: var(--card);
+  stroke: var(--on-primary);
 }
 
 /* ── Check grid & cards ──────────────────────────────────────────────────── */
@@ -374,7 +374,7 @@
 .of-check-box svg {
   width: 12px;
   height: 12px;
-  stroke: var(--card);
+  stroke: var(--on-primary);
 }
 
 .of-check-label {
@@ -694,7 +694,7 @@
 
 .of-btn-next {
   background: var(--primary);
-  color: var(--card);
+  color: var(--on-primary);
   border: none;
   padding: 16px 32px;
   border-radius: 10px;
