@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CITY_DISCLAIMER, activeCity, useCityConfig } from '../cityConfig';
 import CityIcon from './CityIcons';
+import HelpedPill from './HelpedPill';
 import './CategorySelector.css';
 
 const CATEGORIES = [
@@ -209,7 +210,8 @@ export default function CategorySelector({ onApply, onOpenMap, onOpenCamp, onOpe
           <div className="cs-logo" aria-label={city ? `Eligibl for ${city.placeName}` : 'Eligibl'}>
             <span className="cs-logo-e" aria-hidden="true">E</span>ligibl
           </div>
-          <p className="cs-tagline">{city ? city.tagline : 'Federal & state aid — found fast.'}</p>
+          <p className="cs-tagline">{city ? city.tagline : 'Federal & state aid — found fast. All 50 states.'}</p>
+          <HelpedPill />
           {city && (
             <div className="cs-city">
               <p className="cs-city-name">{city.placeName}</p>
@@ -250,7 +252,7 @@ export default function CategorySelector({ onApply, onOpenMap, onOpenCamp, onOpe
             <h1 className="cs-title" id="cs-heading">Find benefits by category</h1>
             <p className="cs-subtitle">
               Select at least one category to find benefits you may qualify for
-              and information on how to apply.
+              and information on how to apply. We'll ask which state you live in next.
             </p>
           </div>
           <button

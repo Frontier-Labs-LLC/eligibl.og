@@ -1,0 +1,63 @@
+/* ── Front-page "people helped" pill ─────────────────────────────────────── */
+.hp-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 16px auto 4px;
+  padding: 8px 16px 8px 10px;
+  box-sizing: border-box;
+  background: var(--success-bg);
+  border: 1px solid var(--success);
+  border-radius: 999px;
+  color: var(--success-text);
+  font-size: 0.88rem;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: left;
+  animation: hp-pill-in 0.3s ease;
+}
+
+@keyframes hp-pill-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hp-pill-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--success);
+  color: var(--on-primary);
+}
+
+.hp-pill-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.hp-pill-text {
+  min-width: 0;
+}
+
+.hp-pill-count {
+  font-weight: 800;
+  font-size: 1.05em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Phones: let the text wrap inside a softer rounded box instead of one long line. */
+@media (max-width: 480px) {
+  .hp-pill {
+    width: 100%;
+    gap: 8px;
+    padding: 10px 14px 10px 10px;
+    border-radius: 16px;
+    font-size: 0.84rem;
+  }
+}
