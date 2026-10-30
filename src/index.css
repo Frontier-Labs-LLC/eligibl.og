@@ -1,13 +1,155 @@
+/* ── CSS Custom Properties (dark by default, light when chosen) ───────────── */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg:           #0f172a;
+  --bg-alt:       #1e293b;
+  --card:         #1e293b;
+  --card-alt:     #1e3a5f;
+  --border:       #334155;
+  --border-light: #1e293b;
+  --text:         #e2e8f0;
+  --text-heading: #f8fafc;
+  --text-muted:   #cbd5e1;
+  --text-faint:   #94a3b8;
+  --primary:      #3b82f6;
+  --primary-dark: #60a5fa;
+  --primary-bg:   rgba(59,130,246,0.15);
+  --primary-border:#1d4ed8;
+  --primary-light:#60a5fa;
+  --on-primary:   #ffffff;
+  --success:      #22c55e;
+  --success-bg:   rgba(34,197,94,0.15);
+  --success-text: #86efac;
+  --warning:      #f59e0b;
+  --warning-bg:   rgba(245,158,11,0.15);
+  --warning-text: #fde68a;
+  --danger:       #ef4444;
+  --danger-dark:  #dc2626;
+  --info-bg:      rgba(245,158,11,0.1);
+  --info-border:  #92400e;
+  --info-text:    #fde68a;
+  --gradient-start:#0f172a;
+  --gradient-end:  #1d4ed8;
+  --shadow-sm:    rgba(0, 0, 0, 0.3);
+  --shadow-md:    rgba(0, 0, 0, 0.4);
+  --shadow-lg:    rgba(0, 0, 0, 0.5);
+  --input-bg:     #0f172a;
+  --stepper-bg:   #0f172a;
+  --money-bg:     #0f172a;
+  --conditional-bg: rgba(59,130,246,0.08);
+  --conditional-border: #1d4ed8;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --bg:           #f4f6f9;
+  --bg-alt:       #f8fafc;
+  --card:         #ffffff;
+  --card-alt:     #f8faff;
+  --border:       #e2e8f0;
+  --border-light: #f1f5f9;
+  --text:         #1e293b;
+  --text-heading: #1a3a5c;
+  --text-muted:   #64748b;
+  --text-faint:   #94a3b8;
+  --primary:      #2563eb;
+  --primary-dark: #1d4ed8;
+  --primary-bg:   #eff6ff;
+  --primary-border:#bfdbfe;
+  --primary-light:#93c5fd;
+  --on-primary:   #ffffff;
+  --success:      #16a34a;
+  --success-bg:   #dcfce7;
+  --success-text: #15803d;
+  --warning:      #d97706;
+  --warning-bg:   #fef9c3;
+  --warning-text: #a16207;
+  --danger:       #dc2626;
+  --danger-dark:  #b91c1c;
+  --info-bg:      #fffbeb;
+  --info-border:  #fcd34d;
+  --info-text:    #92400e;
+  --gradient-start:#1a3a5c;
+  --gradient-end:  #2563eb;
+  --shadow-sm:    rgba(0, 0, 0, 0.06);
+  --shadow-md:    rgba(0, 0, 0, 0.07);
+  --shadow-lg:    rgba(0, 0, 0, 0.1);
+  --input-bg:     #ffffff;
+  --stepper-bg:   #f8fafc;
+  --money-bg:     #f8fafc;
+  --conditional-bg: #f8faff;
+  --conditional-border: #dbeafe;
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-size: 16px;
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.3s, color 0.3s;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+/* Prevent horizontal overflow on mobile */
+#root {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Ensure inputs don't zoom on iOS (font-size >= 16px) */
+@media (max-width: 600px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* Skip-to-content link for keyboard / screen-reader users */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 16px;
+  z-index: 9999;
+  padding: 12px 20px;
+  background: var(--primary);
+  color: #ffffff;
+  font-weight: 700;
+  border-radius: 0 0 8px 8px;
+  text-decoration: none;
+  transition: top 0.15s;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Global focus-visible outline — keyboard nav only, not mouse clicks */
+*:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Remove default focus ring from mouse clicks on buttons (browsers handle this) */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Minimum touch target size */
+button, [role="button"], a {
+  touch-action: manipulation;
 }
