@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import useOnboardingStore from '../store/useOnboardingStore';
-import { activeCity, useCityConfig } from '../cityConfig';
+import { CITY_DISCLAIMER, activeCity, useCityConfig } from '../cityConfig';
+import CityIcon from './CityIcons';
 import { US_STATES, getStateName } from '../data/stateFacts';
 import { getStatePrograms } from '../data/statePrograms';
 import PROGRAMS from '../data/programs';
@@ -12,7 +13,7 @@ import './OnboardingForm.css';
 const TOTAL_STEPS = 6;
 
 const STEP_META = [
-  { number: 1, title: 'Your Location',        subtitle: 'Aid programs differ by state. Tell us where you live so we check the right rules.' },
+  { number: 1, title: 'Your Location',        subtitle: 'You do not have to know which program to ask for. Your state is the only required answer. Everything after it is optional.' },
   { number: 2, title: 'About You',             subtitle: 'Basic information used to check program requirements.' },
   { number: 3, title: 'Your Household',        subtitle: 'Who you live with affects eligibility for many programs.' },
   { number: 4, title: 'Income & Employment',   subtitle: 'Most programs use income to determine eligibility.' },
@@ -121,10 +122,13 @@ function MoneyInput({ value, onChange, placeholder = '0', suffix = '/ month' }) 
 // ── Step 1: Location ─────────────────────────────────────────────────────────
 
 function StepLocation({ store, city }) {
-  // A city preview is always a North Carolina preview; start it on NC.
+  // A city preview is always a North Carolina preview. The preview can turn on
+  // after this step mounts (the #charlotte address), so watch `city`, not just mount.
   useEffect(() => {
-    if (city && !store.residentState) store.set('residentState', 'NC');
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!city) return;
+    const current = useOnboardingStore.getState();
+    if (!current.residentState) current.set('residentState', 'NC');
+  }, [city]);
 
   const code = store.residentState;
   const stateName = getStateName(code);
@@ -630,7 +634,7 @@ function StepDetails({ store }) {
 
 // ── Main component ───────────────────────────────────────────────────────────
 
-export default function OnboardingForm({ selectedCategories, onComplete }) {
+export default function OnboardingForm({ selectedCategories, onComplete, onOpenMap, onOpenCamp, onOpenOffice, onOpenAdmin }) {
   const [currentStep, setCurrentStep] = useState(1);
   const store = useOnboardingStore();
 
@@ -724,11 +728,68 @@ export default function OnboardingForm({ selectedCategories, onComplete }) {
       <a href="#of-main" className="skip-link">Skip to form</a>
       <div className="of-container">
 
-        {/* Logo */}
-        <div className="of-logo-bar">
-          <div className="of-logo"><span className="of-logo-e">E</span>ligibl</div>
-          <p className="of-logo-sub">Find benefits you may qualify for — free &amp; anonymous.</p>
-        </div>
+        <header className="of-intro">
+          <div className="of-logo" aria-label={city ? `Eligibl for ${city.placeName}` : 'Eligibl'}>
+            <span className="of-logo-e" aria-hidden="true">E</span>ligibl
+          </div>
+          <h1 className="of-objective">See which aid you may qualify for</h1>
+          <p className="of-objective-copy">
+            You do not need to pick a reason or know the program name. Answer a few questions.
+            Eligibl lists federal and state programs that may fit, and the official place to apply.
+            This is a screening, not a decision. It does not file in ePASS or NC FAST, and it never asks for a Social Security number.
+          </p>
+          {city && (
+            <div className="of-city">
+              <p className="of-city-name">{city.placeName}</p>
+              <p>{city.intro}</p>
+              <p>
+                <a href={`tel:${city.contactPhone}`}>{city.contactPhone}</a>
+                {' · '}
+                {city.contactName}
+                {' · '}
+                {city.contactAddress}
+              </p>
+              <ul className="of-city-icons">
+                {city.services.map((service, index) => (
+                  <li key={`${service.icon}-${index}`}>
+                    <span aria-hidden="true"><CityIcon id={service.icon} /></span>
+                    {service.label}
+                  </li>
+                ))}
+              </ul>
+              <p className="of-city-note">{CITY_DISCLAIMER}</p>
+            </div>
+          )}
+          <div className="of-doors">
+            {onOpenOffice && (
+              <button type="button" className="of-door" onClick={onOpenOffice}>
+                State offices — seed or support this
+              </button>
+            )}
+            {onOpenMap && (
+              <button type="button" className="of-door" onClick={onOpenMap}>
+                View NC Resource Map
+              </button>
+            )}
+            {onOpenCamp && (
+              <button type="button" className="of-door" onClick={onOpenCamp}>
+                Public campgrounds and safe parking
+              </button>
+            )}
+            {onOpenAdmin && (
+              <button type="button" className="of-door" onClick={onOpenAdmin}>
+                City preview
+              </button>
+            )}
+          </div>
+          {onOpenCamp && (
+            <p className="of-camp-note">
+              Campgrounds are North Carolina State Parks sites with a published address.
+              Safe parking is listed only when the program publishes the lot.
+              Rest areas are not overnight parking.
+            </p>
+          )}
+        </header>
 
         {/* Progress tracker */}
         <div className="of-progress-wrap">
@@ -766,7 +827,7 @@ export default function OnboardingForm({ selectedCategories, onComplete }) {
         {/* Form card */}
         <main id="of-main" className="of-card" aria-label={`Step ${currentStep} of ${TOTAL_STEPS}: ${current.title}`}>
           <div className="of-step-header">
-            <h1 className="of-step-title">{current.title}</h1>
+            <h2 className="of-step-title">{current.title}</h2>
             <p className="of-step-subtitle">{stepSubtitle}</p>
           </div>
 

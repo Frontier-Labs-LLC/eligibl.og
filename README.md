@@ -2,6 +2,8 @@
 
 A check a person can finish before they take a number at a county office. Federal aid plus each state's headline programs, and a North Carolina map of local doors. The map also lists North Carolina State Parks campgrounds and published safe-parking lots. A screening, not a decision.
 
+The check opens on the questions. There is no page that asks someone to choose why they need aid. They do not have to know the program name. The state is the only required answer.
+
 The check now asks which state you live in and covers all 50 states and Washington, DC. North Carolina has a hand-written catalog (`src/data/nc-programs.js`). Every other state gets its six headline programs — Medicaid, CHIP, SNAP, TANF cash assistance, LIHEAP, and the child care subsidy — built from `src/data/stateFacts.js` by `src/data/stateProgramBuilder.js`. To deepen a state, add a hand-written file and a case in `src/data/statePrograms.js` the way NC does. The catalog is a draft until a state or county office seeds the facts it will stand behind.
 
 Open `#office` for the one-page brief to leave with NCDHHS or a county Department of Social Services. Open `#charlotte` for the City of Charlotte preview, or `#admin` to change that preview's icons and contact information and to read the live usage counts. The preview is stored in the browser. It is not an official City of Charlotte system.

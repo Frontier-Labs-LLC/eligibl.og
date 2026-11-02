@@ -16,7 +16,7 @@ const FIELDS = [
   ['placeName', 'Place name', 'City of Charlotte'],
   ['tagline', 'Tagline', 'Short line under the logo'],
   ['contactName', 'Office name', 'Who residents should call'],
-  ['contactPhone', 'Office phone', '980-314-5500'],
+  ['contactPhone', 'Office phone', '980-314-8400'],
   ['contactAddress', 'Office address', 'Street, city, state, ZIP'],
   ['contactWebsite', 'Office website', 'https://'],
 ];

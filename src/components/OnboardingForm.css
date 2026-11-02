@@ -39,10 +39,115 @@
   color: var(--primary);
 }
 
-.of-logo-sub {
-  margin: 4px 0 0;
-  font-size: 0.88rem;
+.of-intro {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.of-objective {
+  margin: 10px 0 0;
+  font-size: 1.7rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-heading);
+  line-height: 1.2;
+}
+
+.of-objective-copy {
+  margin: 10px auto 0;
+  max-width: 40rem;
+  font-size: 0.98rem;
   color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.of-city {
+  margin: 18px auto 0;
+  max-width: 40rem;
+  text-align: left;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.of-city p { margin: 0 0 8px; }
+
+.of-city-name {
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.of-city a {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.of-city-icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+.of-city-icons li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.of-city-icons svg {
+  width: 18px;
+  height: 18px;
+  color: var(--primary);
+}
+
+.of-city-note,
+.of-camp-note {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.of-camp-note {
+  max-width: 40rem;
+  margin: 8px auto 0;
+  line-height: 1.45;
+}
+
+.of-doors {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 16px;
+  margin-top: 14px;
+}
+
+.of-door {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  min-height: 44px;
+  padding: 8px 4px;
+}
+
+.of-door:hover {
+  color: var(--primary);
 }
 
 /* ── Progress tracker ────────────────────────────────────────────────────── */

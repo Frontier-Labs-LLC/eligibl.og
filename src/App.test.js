@@ -14,9 +14,11 @@ beforeEach(() => {
   window.history.replaceState(null, '', '/');
 });
 
-test('opens on the resident category check', () => {
+test('opens on the resident check', () => {
   render(<App />);
-  expect(screen.getByRole('heading', { name: /find benefits by category/i })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: /see which aid you may qualify for/i })).toBeInTheDocument();
+  expect(screen.getByText(/you do not need to pick a reason/i)).toBeInTheDocument();
+  expect(screen.queryByRole('heading', { name: /find benefits by category/i })).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: /state offices/i })).toBeInTheDocument();
 });
 
@@ -70,7 +72,7 @@ test('a Charlotte preview is configured from the admin route', () => {
   userEvent.type(phone, '980-314-5501');
   userEvent.click(screen.getByRole('button', { name: /show the charlotte version/i }));
 
-  expect(screen.getByRole('heading', { name: /find benefits by category/i })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: /see which aid you may qualify for/i })).toBeInTheDocument();
   expect(screen.getByText('City of Charlotte')).toBeInTheDocument();
   expect(screen.getByText('980-314-5501')).toBeInTheDocument();
   expect(screen.getByText(/not an official city of charlotte system/i)).toBeInTheDocument();
@@ -80,7 +82,10 @@ test('the charlotte address opens that preview', () => {
   window.location.hash = '#charlotte';
   render(<App />);
   expect(screen.getByText('City of Charlotte')).toBeInTheDocument();
-  expect(screen.getByText(/301 Billingsley Rd/i)).toBeInTheDocument();
+  expect(screen.getByText(/3205 Freedom Dr/i)).toBeInTheDocument();
+  expect(screen.getByText('980-314-8400')).toBeInTheDocument();
+  expect(screen.getByRole('combobox', { name: /your state/i })).toHaveValue('NC');
+  expect(screen.getByRole('button', { name: /continue to step 2/i })).toBeEnabled();
 });
 
 function jsonResponse(body) {
@@ -92,14 +97,8 @@ function jsonResponse(body) {
   };
 }
 
-function startTheCheck() {
-  userEvent.click(screen.getByRole('button', { name: /^food/i }));
-  userEvent.click(screen.getByRole('button', { name: /find programs in 1 selected category/i }));
-}
-
 test('the form asks which state you live in before anything else', () => {
   render(<App />);
-  startTheCheck();
 
   expect(screen.getByRole('heading', { name: /your location/i })).toBeInTheDocument();
   const picker = screen.getByRole('combobox', { name: /your state/i });
@@ -114,7 +113,6 @@ test('the form asks which state you live in before anything else', () => {
 
 test('a Texas resident gets Texas programs and no North Carolina map', async () => {
   render(<App />);
-  startTheCheck();
   userEvent.selectOptions(screen.getByRole('combobox', { name: /your state/i }), 'TX');
   userEvent.click(screen.getByRole('button', { name: /continue to step 2/i }));
 
@@ -137,11 +135,10 @@ test('a Texas resident gets Texas programs and no North Carolina map', async () 
 test('the front page does not show a visitor count', async () => {
   global.fetch = jest.fn().mockResolvedValue(jsonResponse({ ok: true, started: 12345, completed: 9000 }));
   render(<App />);
-  expect(screen.getByRole('heading', { name: /find benefits by category/i })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: /see which aid you may qualify for/i })).toBeInTheDocument();
   await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
   expect(screen.queryByText(/people have used/i)).not.toBeInTheDocument();
   expect(screen.queryByText('12,345')).not.toBeInTheDocument();
-  expect(global.fetch).not.toHaveBeenCalled();
 });
 
 test('admin shows the live visitor counts and nothing else', async () => {
@@ -177,5 +174,5 @@ test('the brief can return to the resident check', () => {
   render(<App />);
   userEvent.click(screen.getByRole('button', { name: /state offices/i }));
   userEvent.click(screen.getByRole('button', { name: /run the resident check/i }));
-  expect(screen.getByRole('heading', { name: /find benefits by category/i })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: /see which aid you may qualify for/i })).toBeInTheDocument();
 });

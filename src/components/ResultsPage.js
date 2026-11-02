@@ -6,7 +6,8 @@ import { getStatePrograms } from '../data/statePrograms';
 import { getStateName } from '../data/stateFacts';
 import './ResultsPage.css';
 
-// Maps CategorySelector category IDs → program category strings
+// Kept so an older profile that still names categories can narrow results.
+// The check no longer asks for a category, so an empty list shows every match.
 const CATEGORY_MAP = {
   'children-families': ['childcare', 'food', 'cash', 'healthcare'],
   'death':             [],

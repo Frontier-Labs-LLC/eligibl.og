@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Analytics } from '@vercel/analytics/react';
-import CategorySelector from './components/CategorySelector';
 import OnboardingForm from './components/OnboardingForm';
 import ResultsPage from './components/ResultsPage';
 import ThemeToggle from './components/ThemeToggle';
@@ -12,14 +11,14 @@ import { activeCity, setActiveCity, useCityConfig } from './cityConfig';
 function viewFromHash(hash) {
   if (hash === '#office') return 'office';
   if (hash === '#admin') return 'admin';
-  return 'categories';
+  return 'onboarding';
 }
 
 function App() {
   const cityState = useCityConfig();
   const city = activeCity(cityState);
-  const [view, setView] = useState(() => viewFromHash(window.location.hash)); // 'categories' | 'onboarding' | 'results' | 'map' | 'office' | 'admin'
-  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [view, setView] = useState(() => viewFromHash(window.location.hash)); // 'onboarding' | 'results' | 'map' | 'office' | 'admin'
+  const [selectedCategories] = useState([]);
   const [completedProfile, setCompletedProfile] = useState(null);
   const [mapCategories, setMapCategories] = useState([]);
 
@@ -40,11 +39,6 @@ function App() {
 
   function leaveOffice() {
     window.history.replaceState(null, '', window.location.pathname + window.location.search);
-    setView('categories');
-  }
-
-  function handleCategoryApply(cats) {
-    setSelectedCategories(cats);
     setView('onboarding');
   }
 
@@ -70,7 +64,7 @@ function App() {
   }, []);
 
   if (view === 'map') {
-    return <><Analytics /><ThemeToggle /><MapView onBack={() => setView('categories')} initialCategories={mapCategories} city={city} /></>;
+    return <><Analytics /><ThemeToggle /><MapView onBack={() => setView('onboarding')} initialCategories={mapCategories} city={city} /></>;
   }
 
   if (view === 'admin') {
@@ -83,7 +77,7 @@ function App() {
           onPreview={(activeId) => {
             if (activeId === 'charlotte') window.location.hash = 'charlotte';
             else window.history.replaceState(null, '', window.location.pathname + window.location.search);
-            setView('categories');
+            setView('onboarding');
           }}
         />
       </>
@@ -104,10 +98,6 @@ function App() {
     );
   }
 
-  if (view === 'categories') {
-    return <><Analytics /><ThemeToggle /><CategorySelector onApply={handleCategoryApply} onOpenMap={() => openMap()} onOpenCamp={() => openMap(['campground', 'safe_parking'])} onOpenOffice={openOffice} onOpenAdmin={openAdmin} /></>;
-  }
-
   if (view === 'onboarding') {
     return (
       <>
@@ -116,6 +106,10 @@ function App() {
         <OnboardingForm
           selectedCategories={selectedCategories}
           onComplete={handleFormComplete}
+          onOpenMap={() => openMap()}
+          onOpenCamp={() => openMap(['campground', 'safe_parking'])}
+          onOpenOffice={openOffice}
+          onOpenAdmin={openAdmin}
         />
       </>
     );
@@ -128,7 +122,7 @@ function App() {
       <ResultsPage
         profile={completedProfile}
         selectedCategories={selectedCategories}
-        onStartOver={() => { setView('categories'); setCompletedProfile(null); setSelectedCategories([]); }}
+        onStartOver={() => { setView('onboarding'); setCompletedProfile(null); }}
         onOpenMap={() => openMap()}
       />
     </>
