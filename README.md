@@ -8,6 +8,14 @@ The check now asks which state you live in and covers all 50 states and Washingt
 
 Open `#office` for the one-page brief to leave with NCDHHS or a county Department of Social Services. Open `#charlotte` for the City of Charlotte preview, or `#admin` to change that preview's icons and contact information and to read the live usage counts. The preview is stored in the browser. It is not an official City of Charlotte system.
 
+## A flow for students
+
+A flow for students is a good idea, and it is the next path to build. Recorded November 2, 2026.
+
+Today a student is one question on the last step of the household check: enrolled or not, then full-time or part-time. Pell, federal work-study, the NC Need-Based Scholarship, and Longleaf match only when that answer is yes. A full-time student is flagged on SNAP, because the student rules have exceptions for work, dependents, and being unable to work. Someone who came for tuition or a campus meal plan has to finish the county-office questions before they see any of that.
+
+The household check stays the front door. The student flow is a second path from that screen, for someone who already knows they are in school. It asks school level (K-12 or college) and enrollment before the long household form. Results still include food, health, and cash aid when those may fit, along with the education programs. It stays a screening: no Social Security number, and it does not file in ePASS, NC FAST, or the FAFSA. School level is not asked yet. Catalog facts stay a draft until an office confirms them.
+
 ## Scripts
 
 - `npm start` — local app
