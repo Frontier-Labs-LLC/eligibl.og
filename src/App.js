@@ -4,17 +4,18 @@ import OnboardingForm from './components/OnboardingForm';
 import ResultsPage from './components/ResultsPage';
 import ThemeToggle from './components/ThemeToggle';
 import OfficeBrief from './components/OfficeBrief';
-import CityAdmin from './components/CityAdmin';
+import AdminGate from './components/AdminGate';
 import { setActiveCity } from './cityConfig';
 
-function viewFromHash(hash) {
-  if (hash === '#office') return 'office';
-  if (hash === '#admin') return 'admin';
+function viewFromLocation() {
+  const path = window.location.pathname.replace(/\/$/, '') || '/';
+  if (path === '/admin' || window.location.hash === '#admin') return 'admin';
+  if (window.location.hash === '#office') return 'office';
   return 'onboarding';
 }
 
 function App() {
-  const [view, setView] = useState(() => viewFromHash(window.location.hash)); // 'onboarding' | 'results' | 'office' | 'admin'
+  const [view, setView] = useState(() => viewFromLocation()); // 'onboarding' | 'results' | 'office' | 'admin'
   const [selectedCategories] = useState([]);
   const [completedProfile, setCompletedProfile] = useState(null);
 
@@ -24,12 +25,19 @@ function App() {
   }
 
   function openAdmin() {
-    window.location.hash = 'admin';
+    window.history.pushState(null, '', '/admin');
     setView('admin');
   }
 
-  function leaveOffice() {
-    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+  function leaveToHome() {
+    window.history.pushState(null, '', '/');
+    setView('onboarding');
+  }
+
+  function previewCity(activeId) {
+    const next = activeId === 'charlotte' ? '/#charlotte' : '/';
+    window.history.pushState(null, '', next);
+    if (activeId === 'charlotte') setActiveCity('charlotte');
     setView('onboarding');
   }
 
@@ -43,15 +51,28 @@ function App() {
   }, [view]);
 
   useEffect(() => {
+    if (window.location.hash === '#admin') {
+      window.history.replaceState(null, '', '/admin');
+    }
     if (window.location.hash === '#charlotte') setActiveCity('charlotte');
     function onHash() {
       if (window.location.hash === '#charlotte') setActiveCity('charlotte');
-      if (window.location.hash === '#office' || window.location.hash === '#admin') {
-        setView(viewFromHash(window.location.hash));
+      if (window.location.hash === '#admin') {
+        window.history.replaceState(null, '', '/admin');
+        setView('admin');
+        return;
       }
+      if (window.location.hash === '#office') setView('office');
+    }
+    function onPop() {
+      setView(viewFromLocation());
     }
     window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
+    window.addEventListener('popstate', onPop);
+    return () => {
+      window.removeEventListener('hashchange', onHash);
+      window.removeEventListener('popstate', onPop);
+    };
   }, []);
 
   if (view === 'admin') {
@@ -59,14 +80,7 @@ function App() {
       <>
         <Analytics />
         <ThemeToggle />
-        <CityAdmin
-          onBack={leaveOffice}
-          onPreview={(activeId) => {
-            if (activeId === 'charlotte') window.location.hash = 'charlotte';
-            else window.history.replaceState(null, '', window.location.pathname + window.location.search);
-            setView('onboarding');
-          }}
-        />
+        <AdminGate onBack={leaveToHome} onPreview={previewCity} />
       </>
     );
   }
@@ -77,8 +91,8 @@ function App() {
         <Analytics />
         <ThemeToggle />
         <OfficeBrief
-          onBack={leaveOffice}
-          onRunCheck={leaveOffice}
+          onBack={leaveToHome}
+          onRunCheck={leaveToHome}
         />
       </>
     );

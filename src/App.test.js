@@ -6,12 +6,21 @@ import NC_CAMP_PARKING from './data/nc-camp-parking';
 import { resetCityStore } from './cityConfig';
 import useOnboardingStore from './store/useOnboardingStore';
 
-beforeEach(() => {
+beforeEach(async () => {
   localStorage.clear();
   resetCityStore();
   useOnboardingStore.getState().reset();
   document.documentElement.removeAttribute('data-theme');
   window.history.replaceState(null, '', '/');
+  // jsdom fires popstate on a timer when this replaces a hash URL. Let it
+  // finish before the next screen is open, or it will wipe that screen.
+  await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: false,
+    status: 404,
+    headers: { get: () => '' },
+    json: () => Promise.resolve({}),
+  });
 });
 
 test('opens on the resident check', () => {
@@ -56,11 +65,21 @@ test('opens in dark mode without asking', () => {
   expect(screen.getByRole('button', { name: /switch to light mode/i })).toBeInTheDocument();
 });
 
-test('a Charlotte preview is configured from the admin route', () => {
-  window.location.hash = '#admin';
+function signIn(visitor) {
+  global.fetch = jest.fn((url) => {
+    if (String(url).includes('/api/auth/me')) {
+      return Promise.resolve(jsonResponse({ ok: true, email: 'owner@eligibl.org' }));
+    }
+    return Promise.resolve(visitor);
+  });
+  window.history.pushState(null, '', '/admin');
+}
+
+test('a Charlotte preview is configured from the admin route', async () => {
+  signIn(jsonResponse({ ok: true }));
   render(<App />);
 
-  expect(screen.getByRole('heading', { name: /configure the charlotte preview/i })).toBeInTheDocument();
+  expect(await screen.findByRole('heading', { name: /configure the charlotte preview/i })).toBeInTheDocument();
   expect(screen.getByText(/not an official city of charlotte system/i)).toBeInTheDocument();
 
   const phone = screen.getByLabelText(/office phone/i);
@@ -137,9 +156,40 @@ test('the front page does not show a visitor count', async () => {
   expect(screen.queryByText('12,345')).not.toBeInTheDocument();
 });
 
-test('admin shows the live visitor counts and nothing else', async () => {
-  global.fetch = jest.fn().mockResolvedValue(jsonResponse({ ok: true, started: 4, completed: 1 }));
+test('/admin asks for Google before it shows counts', async () => {
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: false,
+    status: 401,
+    headers: { get: () => 'application/json' },
+    json: () => Promise.resolve({ ok: false }),
+  });
+  window.history.pushState(null, '', '/admin');
+  render(<App />);
+
+  const link = await screen.findByRole('link', { name: /sign in with google/i });
+  expect(link).toHaveAttribute('href', '/api/auth/google');
+  expect(screen.queryByRole('heading', { name: /^usage$/i })).not.toBeInTheDocument();
+  expect(window.location.pathname).toBe('/admin');
+  expect(window.location.hash).toBe('');
+});
+
+test('the old #admin address becomes /admin', async () => {
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: false,
+    status: 401,
+    headers: { get: () => 'application/json' },
+    json: () => Promise.resolve({ ok: false }),
+  });
   window.location.hash = '#admin';
+  render(<App />);
+
+  expect(await screen.findByRole('link', { name: /sign in with google/i })).toBeInTheDocument();
+  expect(window.location.pathname).toBe('/admin');
+  expect(window.location.hash).toBe('');
+});
+
+test('admin shows the live visitor counts and nothing else', async () => {
+  signIn(jsonResponse({ ok: true, started: 4, completed: 1 }));
   render(<App />);
 
   expect(await screen.findByRole('heading', { name: /^usage$/i })).toBeInTheDocument();
@@ -152,13 +202,12 @@ test('admin shows the live visitor counts and nothing else', async () => {
 });
 
 test('admin names the env vars when the counter is not connected', async () => {
-  global.fetch = jest.fn().mockResolvedValue({
+  signIn({
     ok: false,
     status: 503,
     headers: { get: () => 'application/json' },
     json: () => Promise.resolve({ ok: false, configured: false }),
   });
-  window.location.hash = '#admin';
   render(<App />);
 
   expect(await screen.findByText(/KV_REST_API_URL/)).toBeInTheDocument();
@@ -180,7 +229,7 @@ test('a state is enough to see programs, then the help survey', async () => {
 });
 
 test('admin shows page hits and where people clicked', async () => {
-  global.fetch = jest.fn().mockResolvedValue(jsonResponse({
+  signIn(jsonResponse({
     ok: true,
     started: 140,
     completed: 10,
@@ -192,7 +241,6 @@ test('admin shows page hits and where people clicked', async () => {
     heat: { 'step-1': { '2:3': 8 } },
     survey: { 'helped-yes': 6, 'why-knew-next': 4 },
   }));
-  window.location.hash = '#admin';
   render(<App />);
 
   expect(await screen.findByText(/10 of 150 hits on the first page reached the results/i)).toBeInTheDocument();

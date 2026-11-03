@@ -6,11 +6,11 @@ The check opens on the questions. There is no page that asks someone to choose w
 
 The North Carolina resource map is hidden until the same kind of places exist for every state. The campground and parking data is still in the repo.
 
-`#admin` shows how many times each page was hit, how many people reached it, where they clicked, and the answers to "Did this help?". That survey is the number to take to a call center. It is not tied to a person's name or to the answers in the check. Vercel Web Analytics also receives a path for each screen (`/step-1`, `/results`). On the live site today, Vercel still sees one URL, because the category page is what production is serving and the steps are not separate addresses.
+`/admin` shows how many times each page was hit, how many people reached it, where they clicked, and the answers to "Did this help?". That survey is the number to take to a call center. It is not tied to a person's name or to the answers in the check. The page requires Google sign-in. Vercel Web Analytics also receives a path for each screen (`/step-1`, `/results`). On the live site today, Vercel still sees one URL, because the category page is what production is serving and the steps are not separate addresses.
 
 The check now asks which state you live in and covers all 50 states and Washington, DC. North Carolina has a hand-written catalog (`src/data/nc-programs.js`). Every other state gets its six headline programs — Medicaid, CHIP, SNAP, TANF cash assistance, LIHEAP, and the child care subsidy — built from `src/data/stateFacts.js` by `src/data/stateProgramBuilder.js`. To deepen a state, add a hand-written file and a case in `src/data/statePrograms.js` the way NC does. The catalog is a draft until a state or county office seeds the facts it will stand behind.
 
-Open `#office` for the one-page brief to leave with NCDHHS or a county Department of Social Services. Open `#charlotte` for the City of Charlotte preview, or `#admin` to change that preview's icons and contact information and to read the live usage counts. The preview is stored in the browser. It is not an official City of Charlotte system.
+Open `#office` for the one-page brief to leave with NCDHHS or a county Department of Social Services. Open `#charlotte` for the City of Charlotte preview. Open `/admin` to change that preview's icons and contact information and to read the live usage counts. The old `#admin` address forwards to `/admin`. The preview is stored in the browser. It is not an official City of Charlotte system.
 
 ## A flow for students
 
@@ -28,11 +28,29 @@ The household check stays the front door. The student flow is a second path from
 
 ## Visitor counts
 
-The public pages never show a count. `#admin` reads the live totals: how many unique people started the form, how many finished it, how many times each page was hit, where clicks landed, and what people said when asked if the check helped. Each browser gets one random ID in `localStorage` (`eligibl-visitor-id`); it is sent to `/api/visitors` the first time the person reaches the form and again when they finish it. No answers, names, or IP addresses are stored. A zero on that page is a real zero. Until Redis is connected, the page shows the missing variable names and no number.
+The public pages never show a count. `/admin` reads the live totals: how many unique people started the form, how many finished it, how many times each page was hit, where clicks landed, and what people said when asked if the check helped. Each browser gets one random ID in `localStorage` (`eligibl-visitor-id`); it is sent to `/api/visitors` the first time the person reaches the form and again when they finish it. No answers, names, or IP addresses are stored. A zero on that page is a real zero. Until Redis is connected, the page shows the missing variable names and no number.
 
 `api/visitors.js` is a Vercel serverless function that keeps one Redis set per event and reports its size, so every person is counted exactly once. It talks to Redis over the Upstash REST protocol. Set one pair on the Vercel project (server only — do not prefix with `REACT_APP_`), then redeploy:
 
 - `KV_REST_API_URL` and `KV_REST_API_TOKEN` (filled in automatically by the Vercel Marketplace Upstash / KV integration), or
 - `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`.
 
-`VISITOR_KEY_PREFIX` is optional and defaults to `eligibl:visitors:`. Without a pair the function answers `503` and the rest of the site keeps working. Run the function locally with `vercel dev`; `npm start` alone has no `/api`.
+`VISITOR_KEY_PREFIX` is optional and defaults to `eligibl:visitors:`. Without a pair the function answers `503` and the rest of the site keeps working. `GET /api/visitors` answers only for a signed-in admin. Recording a page, a click, or a survey answer stays open. Run the function locally with `vercel dev`; `npm start` alone has no `/api`.
+
+## Admin sign-in
+
+`/admin` is a real path, not a hash. Vercel rewrites it to the app. Google sign-in is a server-side OAuth code flow. The browser never sees the client secret. After Google, the server checks that the address is verified and is on the allow list, then sets an httpOnly cookie for seven days.
+
+In Google Cloud, create an OAuth client of type Web application. Add these authorized redirect URIs:
+
+- `https://eligibl.org/api/auth/callback`
+- `http://localhost:3000/api/auth/callback` if you use `vercel dev`
+
+Set these on the Vercel project, then redeploy. Do not prefix them with `REACT_APP_`.
+
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `ADMIN_SESSION_SECRET` — a long random string (`openssl rand -hex 32`)
+- `ADMIN_GOOGLE_EMAILS` — the Google accounts that may open `/admin`, separated by commas
+
+Until those are set, `/admin` explains what is missing and does not let anyone in.

@@ -1,4 +1,5 @@
 import handler from '../../api/visitors';
+import { signSession } from '../../server/adminSession';
 
 function mockRes() {
   const res = {
@@ -28,16 +29,36 @@ beforeEach(() => {
   delete process.env.KV_REST_API_TOKEN;
   delete process.env.UPSTASH_REDIS_REST_URL;
   delete process.env.UPSTASH_REDIS_REST_TOKEN;
+  delete process.env.ADMIN_SESSION_SECRET;
   global.fetch = jest.fn();
 });
+
+function asAdmin(req) {
+  process.env.ADMIN_SESSION_SECRET = 'test-session-secret';
+  const token = signSession('owner@eligibl.org', process.env.ADMIN_SESSION_SECRET);
+  return {
+    ...req,
+    headers: { ...(req.headers || {}), cookie: `eligibl_admin=${token}` },
+  };
+}
 
 afterEach(() => {
   process.env = ENV;
 });
 
-test('answers 503 when no Redis is configured so the pill hides itself', async () => {
+test('GET refuses the counts when nobody is signed in', async () => {
+  process.env.KV_REST_API_URL = 'https://example.upstash.io/';
+  process.env.KV_REST_API_TOKEN = 'secret-token';
   const res = mockRes();
-  await handler({ method: 'GET' }, res);
+  await handler({ method: 'GET', headers: {} }, res);
+  expect(res.statusCode).toBe(401);
+  expect(res.body.ok).toBe(false);
+  expect(global.fetch).not.toHaveBeenCalled();
+});
+
+test('a signed-in admin gets 503 when no Redis is configured', async () => {
+  const res = mockRes();
+  await handler(asAdmin({ method: 'GET' }), res);
   expect(res.statusCode).toBe(503);
   expect(res.body.configured).toBe(false);
   expect(global.fetch).not.toHaveBeenCalled();
@@ -64,7 +85,7 @@ test('GET reports page hits, unique people, clicks, and the help survey', async 
   });
 
   const res = mockRes();
-  await handler({ method: 'GET' }, res);
+  await handler(asAdmin({ method: 'GET' }), res);
 
   expect(res.statusCode).toBe(200);
   expect(res.body.started).toBe(1234);
@@ -168,7 +189,7 @@ test('a Redis failure is reported as 502 without leaking details', async () => {
   global.fetch.mockResolvedValueOnce({ ok: false, status: 401, json: () => Promise.resolve({}) });
 
   const res = mockRes();
-  await handler({ method: 'GET' }, res);
+  await handler(asAdmin({ method: 'GET' }), res);
   expect(res.statusCode).toBe(502);
   expect(res.body.ok).toBe(false);
 });

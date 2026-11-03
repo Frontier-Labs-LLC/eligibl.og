@@ -2,6 +2,7 @@
  * Vercel serverless function: anonymous counts for the check.
  *
  *   GET  /api/visitors
+ *     Signed-in admin only.
  *     { ok, started, completed, pages, clicks, heat, survey }
  *
  *   POST /api/visitors { id, event: 'started' | 'completed' | survey id }
@@ -18,6 +19,8 @@
  * Marketplace Upstash/KV integration or a plain Upstash database.
  * When no Redis is configured the function answers 503.
  */
+
+import { readSession } from '../server/adminSession';
 
 const UNIQUE_EVENTS = [
   'started',
@@ -185,6 +188,11 @@ function bucket(value) {
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
+
+  if (req.method === 'GET') {
+    const session = readSession(req.headers && req.headers.cookie);
+    if (!session) return res.status(401).json({ ok: false });
+  }
 
   const config = redisConfig();
   if (!config) {
