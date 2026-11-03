@@ -287,16 +287,6 @@ export default function MapView({ onBack, initialCategories = [], city = null })
             )}
           </div>
 
-          {(activeCategories.has('campground') || activeCategories.has('safe_parking')) && (
-            <p className="mv-stay-note">
-              These campgrounds are North Carolina State Parks sites. Reserve first:
-              $15 to $145 a night, check-in at 3 p.m., check-out at noon, and no more
-              than 14 nights in any 30 days. Safe parking is listed only when the
-              program publishes the lot — register before you arrive. NCDOT rest areas
-              and welcome centers are not overnight parking, and they are not pins.
-            </p>
-          )}
-
           <div className="mv-sidebar-legend">
             <p className="mv-sidebar-note">
               Click markers for details. Use filters or search to narrow results.
