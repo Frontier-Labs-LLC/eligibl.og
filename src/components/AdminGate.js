@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useVisitorCounts } from '../lib/visitorCount';
+import CityAdmin from './CityAdmin';
 import './AdminGate.css';
 
 const MESSAGES = {
@@ -8,35 +8,7 @@ const MESSAGES = {
   failed: 'Google sign-in did not finish. Try again.',
 };
 
-function Usage() {
-  const { status, counts } = useVisitorCounts();
-
-  if (status === 'loading') return <p>Loading usage…</p>;
-  if (status === 'unconfigured') {
-    return (
-      <p>
-        The counter is not connected. Set KV_REST_API_URL and KV_REST_API_TOKEN,
-        or UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN, then redeploy.
-      </p>
-    );
-  }
-  if (status !== 'ready' || !counts) return <p>Usage could not be loaded.</p>;
-
-  return (
-    <dl className="ag-counts">
-      <div>
-        <dt>Started the form</dt>
-        <dd>{counts.started.toLocaleString('en-US')}</dd>
-      </div>
-      <div>
-        <dt>Finished and saw programs</dt>
-        <dd>{counts.completed.toLocaleString('en-US')}</dd>
-      </div>
-    </dl>
-  );
-}
-
-export default function AdminGate({ onBack }) {
+export default function AdminGate(props) {
   const [session, setSession] = useState(null);
   const reason = new URLSearchParams(window.location.search).get('auth');
 
@@ -60,25 +32,23 @@ export default function AdminGate({ onBack }) {
     };
   }, []);
 
+  if (session && session.email) {
+    return <CityAdmin {...props} email={session.email} />;
+  }
+
   return (
     <main className="ag-page">
       <div className="ag-card">
         <p className="ag-brand">eligibl<span>.org</span></p>
         <h1>Admin</h1>
-        {session && session.email ? (
-          <>
-            <p>Signed in as {session.email}.</p>
-            <Usage />
-            <p className="ag-actions">
-              <a href="/api/auth/logout">Sign out</a>
-              <button type="button" className="ag-back" onClick={onBack}>Back to the check</button>
-            </p>
-          </>
-        ) : session === null ? (
+        {session === null ? (
           <p>Checking sign-in…</p>
         ) : (
           <>
-            <p>Sign in with the Google account that is allowed to see usage.</p>
+            <p>
+              Sign in with the Google account that is allowed to see usage
+              and the Charlotte preview.
+            </p>
             {reason && MESSAGES[reason] ? (
               <p className="ag-error" role="alert">{MESSAGES[reason]}</p>
             ) : null}

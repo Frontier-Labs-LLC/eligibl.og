@@ -1,0 +1,204 @@
+.va-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 18px 8px;
+  margin: 0 0 28px;
+}
+
+.va-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.va-head h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--text-heading);
+}
+
+.va-refresh {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  color: var(--text-heading);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.va-note {
+  margin: 10px 0 14px;
+  color: var(--text-muted);
+  line-height: 1.45;
+  font-size: 0.92rem;
+}
+
+.va-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 0 0 8px;
+}
+
+.va-stats div {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.va-stats dt {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.va-stats dd {
+  margin: 8px 0 0;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.va-setup {
+  margin: 0 0 14px;
+  color: var(--text);
+  line-height: 1.5;
+  font-size: 0.92rem;
+}
+
+.va-setup p { margin: 0 0 8px; }
+
+.va-setup ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.va-setup code {
+  font-size: 0.84em;
+  color: var(--text-heading);
+}
+
+.va-subhead {
+  margin: 18px 0 8px;
+  font-size: 1rem;
+  color: var(--text-heading);
+}
+
+.va-funnel {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+.va-funnel li {
+  display: grid;
+  grid-template-columns: 8.5rem 1fr auto;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.va-funnel-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.va-funnel-track {
+  height: 10px;
+  background: var(--bg);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.va-funnel-fill {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+  border-radius: 999px;
+}
+
+.va-funnel-nums {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.va-pages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.va-page {
+  min-height: 36px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.va-page--on {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.va-heat {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 3px;
+  margin-bottom: 10px;
+}
+
+.va-heat span {
+  display: block;
+  aspect-ratio: 1;
+  background: var(--primary);
+  border-radius: 3px;
+}
+
+.va-clicks {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+.va-clicks li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+  font-size: 0.88rem;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.va-stats--survey {
+  grid-template-columns: 1fr 1fr;
+}
+
+.va-stats--survey dd {
+  font-size: 1.3rem;
+}
+
+@media (max-width: 560px) {
+  .va-stats { grid-template-columns: 1fr; }
+  .va-stats dd { font-size: 1.5rem; }
+  .va-funnel li { grid-template-columns: 1fr; }
+}
