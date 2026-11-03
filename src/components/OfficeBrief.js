@@ -1,7 +1,7 @@
 import PROGRAMS from '../data/programs';
 import NC_PROGRAMS from '../data/nc-programs';
-import NC_MAP_LOCATIONS from '../data/nc-map-data';
 import { STATE_COUNT } from '../data/statePrograms';
+import { usePageAnalytics } from '../lib/productAnalytics';
 import './OfficeBrief.css';
 
 const SEED_FIRST = ['snap', 'nc-medicaid', 'nc-work-first', 'nc-child-care-subsidy', 'nc-cip'];
@@ -12,7 +12,8 @@ function findProgram(id) {
   return CATALOG.find((program) => program.id === id);
 }
 
-export default function OfficeBrief({ onBack, onRunCheck, onOpenMap }) {
+export default function OfficeBrief({ onBack, onRunCheck }) {
+  usePageAnalytics('office');
   const draftPrograms = SEED_FIRST.map(findProgram).filter(Boolean);
 
   return (
@@ -45,10 +46,6 @@ export default function OfficeBrief({ onBack, onRunCheck, onOpenMap }) {
             <dd>{NC_PROGRAMS.length}</dd>
           </div>
           <div>
-            <dt>Places on the NC resource map</dt>
-            <dd>{NC_MAP_LOCATIONS.length}</dd>
-          </div>
-          <div>
             <dt>States with headline programs in the draft</dt>
             <dd>{STATE_COUNT}</dd>
           </div>
@@ -57,9 +54,6 @@ export default function OfficeBrief({ onBack, onRunCheck, onOpenMap }) {
         <div className="ob-actions no-print">
           <button type="button" className="ob-btn ob-btn-primary" onClick={onRunCheck}>
             Run the resident check
-          </button>
-          <button type="button" className="ob-btn" onClick={onOpenMap}>
-            Open the NC map
           </button>
           <button type="button" className="ob-btn" onClick={() => window.print()}>
             Print this brief
@@ -156,7 +150,7 @@ export default function OfficeBrief({ onBack, onRunCheck, onOpenMap }) {
           <p>
             Pick one DSS office. Seed the five programs above, or tell us to hide
             any you will not stand behind. Residents in that county can use the
-            check and the map. Either side can stop. Unseeded programs stay
+            check. Either side can stop. Unseeded programs stay
             labeled draft, or you tell us to take them off.
           </p>
           <div className="ob-card ob-scripture">
@@ -186,7 +180,7 @@ export default function OfficeBrief({ onBack, onRunCheck, onOpenMap }) {
           <summary>If you are the person walking this in</summary>
           <ol>
             <li>Open this page. Say you are not asking them to replace ePASS or NC FAST.</li>
-            <li>Hand them the laptop and run the resident check. Then open the map.</li>
+            <li>Hand them the laptop and run the resident check.</li>
             <li>Come back here. Seeding is their facts. Support is the sentence they publish after that.</li>
             <li>Leave the printed brief. Ask for a contact, the five programs, and one county.</li>
           </ol>

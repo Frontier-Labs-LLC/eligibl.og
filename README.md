@@ -2,7 +2,11 @@
 
 A check a person can finish before they take a number at a county office. Federal aid plus each state's headline programs, and a North Carolina map of local doors. The map also lists North Carolina State Parks campgrounds and published safe-parking lots. A screening, not a decision.
 
-The check opens on the questions. There is no page that asks someone to choose why they need aid. They do not have to know the program name. The state is the only required answer.
+The check opens on the questions. There is no page that asks someone to choose why they need aid. They do not have to know the program name. The state is the only required answer. Once a state is chosen, **See my programs** shows the matches. The later questions are optional detail.
+
+The North Carolina resource map is hidden until the same kind of places exist for every state. The campground and parking data is still in the repo.
+
+`#admin` shows how many times each page was hit, how many people reached it, where they clicked, and the answers to "Did this help?". That survey is the number to take to a call center. It is not tied to a person's name or to the answers in the check. Vercel Web Analytics also receives a path for each screen (`/step-1`, `/results`). On the live site today, Vercel still sees one URL, because the category page is what production is serving and the steps are not separate addresses.
 
 The check now asks which state you live in and covers all 50 states and Washington, DC. North Carolina has a hand-written catalog (`src/data/nc-programs.js`). Every other state gets its six headline programs — Medicaid, CHIP, SNAP, TANF cash assistance, LIHEAP, and the child care subsidy — built from `src/data/stateFacts.js` by `src/data/stateProgramBuilder.js`. To deepen a state, add a hand-written file and a case in `src/data/statePrograms.js` the way NC does. The catalog is a draft until a state or county office seeds the facts it will stand behind.
 
@@ -24,7 +28,7 @@ The household check stays the front door. The student flow is a second path from
 
 ## Visitor counts
 
-The public pages never show a count. `#admin` reads the live totals: how many unique people started the form, and how many finished it. Each browser gets one random ID in `localStorage` (`eligibl-visitor-id`); it is sent to `/api/visitors` the first time the person reaches the form and again when they finish it. No answers, names, or IP addresses are stored. A zero on that page is a real zero. Until Redis is connected, the page shows the missing variable names and no number.
+The public pages never show a count. `#admin` reads the live totals: how many unique people started the form, how many finished it, how many times each page was hit, where clicks landed, and what people said when asked if the check helped. Each browser gets one random ID in `localStorage` (`eligibl-visitor-id`); it is sent to `/api/visitors` the first time the person reaches the form and again when they finish it. No answers, names, or IP addresses are stored. A zero on that page is a real zero. Until Redis is connected, the page shows the missing variable names and no number.
 
 `api/visitors.js` is a Vercel serverless function that keeps one Redis set per event and reports its size, so every person is counted exactly once. It talks to Redis over the Upstash REST protocol. Set one pair on the Vercel project (server only — do not prefix with `REACT_APP_`), then redeploy:
 

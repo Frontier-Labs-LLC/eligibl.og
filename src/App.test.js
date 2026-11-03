@@ -34,15 +34,11 @@ test('state office brief asks North Carolina to seed, using the live catalog', (
   expect(screen.getAllByText(/draft\. not supplied by your office/i).length).toBeGreaterThan(0);
 });
 
-test('public campgrounds and safe parking open on the map', () => {
+test('the resource map stays off the check until every state has places', () => {
   render(<App />);
-  userEvent.click(screen.getByRole('button', { name: /public campgrounds and safe parking/i }));
-
-  expect(screen.getByText(/Father's Storehouse safe parking/i)).toBeInTheDocument();
-  expect(screen.getByText(/Carolina Beach State Park/i)).toBeInTheDocument();
-  expect(screen.getByText(/NCDOT rest areas and welcome centers are not overnight parking/i)).toBeInTheDocument();
-  expect(screen.queryByText(/Food Bank of Central/i)).not.toBeInTheDocument();
-  expect(screen.queryByText(/Cole Mill Access/i)).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /public campgrounds and safe parking/i })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /view nc resource map/i })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /open the nc map/i })).not.toBeInTheDocument();
   expect(NC_CAMP_PARKING.filter((place) => place.category === 'campground').length).toBeGreaterThan(40);
   expect(NC_CAMP_PARKING.filter((place) => place.category === 'safe_parking')).toHaveLength(1);
   NC_CAMP_PARKING.forEach((place) => {
@@ -168,6 +164,42 @@ test('admin names the env vars when the counter is not connected', async () => {
   expect(await screen.findByText(/KV_REST_API_URL/)).toBeInTheDocument();
   expect(screen.getByText(/UPSTASH_REDIS_REST_URL/)).toBeInTheDocument();
   expect(screen.queryByText('0')).not.toBeInTheDocument();
+});
+
+test('a state is enough to see programs, then the help survey', async () => {
+  render(<App />);
+  expect(screen.queryByRole('button', { name: /see my programs/i })).not.toBeInTheDocument();
+  userEvent.selectOptions(screen.getByRole('combobox', { name: /your state/i }), 'NC');
+  userEvent.click(screen.getByRole('button', { name: /see my programs/i }));
+
+  expect(await screen.findByRole('heading', { name: /did this help/i })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: /you may qualify for/i })).toBeInTheDocument();
+  userEvent.click(screen.getByRole('button', { name: /yes, it helped/i }));
+  userEvent.click(screen.getByRole('button', { name: /i know what to apply for/i }));
+  expect(screen.getByText(/that answer is the number we bring back/i)).toBeInTheDocument();
+});
+
+test('admin shows page hits and where people clicked', async () => {
+  global.fetch = jest.fn().mockResolvedValue(jsonResponse({
+    ok: true,
+    started: 140,
+    completed: 10,
+    pages: {
+      'step-1': { hits: 150, uniques: 140 },
+      results: { hits: 10, uniques: 10 },
+    },
+    clicks: { 'step-1': { 'see-my-programs': 12 } },
+    heat: { 'step-1': { '2:3': 8 } },
+    survey: { 'helped-yes': 6, 'why-knew-next': 4 },
+  }));
+  window.location.hash = '#admin';
+  render(<App />);
+
+  expect(await screen.findByText(/10 of 150 hits on the first page reached the results/i)).toBeInTheDocument();
+  expect(screen.getAllByText(/150/).length).toBeGreaterThan(0);
+  expect(screen.getByText('see-my-programs')).toBeInTheDocument();
+  expect(screen.getByText('Said it helped')).toBeInTheDocument();
+  expect(screen.getByText('6')).toBeInTheDocument();
 });
 
 test('the brief can return to the resident check', () => {

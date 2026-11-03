@@ -30,6 +30,7 @@
   },
   "jest": {
     "moduleNameMapper": {
+      "^@vercel/analytics$": "<rootDir>/node_modules/@vercel/analytics/dist/index.js",
       "^@vercel/analytics/react$": "<rootDir>/node_modules/@vercel/analytics/dist/react/index.js",
       "\\.(css|less)$": "<rootDir>/src/test/styleMock.js"
     }

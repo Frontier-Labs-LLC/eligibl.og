@@ -13,7 +13,29 @@ import { useEffect, useState } from 'react';
 export const VISITOR_API = process.env.REACT_APP_VISITOR_API || '/api/visitors';
 const ID_KEY = 'eligibl-visitor-id';
 const SENT_KEY_PREFIX = 'eligibl-visitor-sent:';
-export const VISITOR_EVENTS = ['started', 'completed'];
+export const VISITOR_EVENTS = [
+  'started',
+  'completed',
+  'helped-yes',
+  'helped-some',
+  'helped-no',
+  'why-knew-next',
+  'why-new-program',
+  'why-still-lost',
+  'why-confusing',
+  'why-wrong',
+];
+
+export const VISITOR_PAGES = [
+  'step-1',
+  'step-2',
+  'step-3',
+  'step-4',
+  'step-5',
+  'step-6',
+  'results',
+  'office',
+];
 
 function randomId() {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -53,12 +75,67 @@ export function getVisitorId() {
   return id;
 }
 
+function finiteCount(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : null;
+}
+
+function parsePages(value) {
+  if (!value || typeof value !== 'object') return null;
+  const pages = {};
+  Object.entries(value).forEach(([page, entry]) => {
+    if (!VISITOR_PAGES.includes(page) || !entry || typeof entry !== 'object') return;
+    const hits = finiteCount(entry.hits);
+    const uniques = finiteCount(entry.uniques);
+    if (hits === null || uniques === null) return;
+    pages[page] = { hits, uniques };
+  });
+  return pages;
+}
+
+function parseNestedCounts(value) {
+  if (!value || typeof value !== 'object') return null;
+  const out = {};
+  Object.entries(value).forEach(([page, entry]) => {
+    if (!VISITOR_PAGES.includes(page) || !entry || typeof entry !== 'object') return;
+    const counts = {};
+    Object.entries(entry).forEach(([name, count]) => {
+      if (!/^[a-z0-9:-]{1,48}$/.test(name)) return;
+      const number = finiteCount(count);
+      if (number === null || number === 0) return;
+      counts[name] = number;
+    });
+    out[page] = counts;
+  });
+  return out;
+}
+
+function parseSurvey(value) {
+  if (!value || typeof value !== 'object') return null;
+  const survey = {};
+  VISITOR_EVENTS.forEach((event) => {
+    if (event === 'started' || event === 'completed') return;
+    const number = finiteCount(value[event]);
+    if (number !== null) survey[event] = number;
+  });
+  return survey;
+}
+
 function parseCounts(data) {
   if (!data || typeof data !== 'object') return null;
-  const started = Number(data.started);
-  const completed = Number(data.completed);
-  if (!Number.isFinite(started) || !Number.isFinite(completed)) return null;
-  return { started, completed };
+  const started = finiteCount(data.started);
+  const completed = finiteCount(data.completed);
+  if (started === null || completed === null) return null;
+  const counts = { started, completed };
+  const pages = parsePages(data.pages);
+  const clicks = parseNestedCounts(data.clicks);
+  const heat = parseNestedCounts(data.heat);
+  const survey = parseSurvey(data.survey);
+  if (pages) counts.pages = pages;
+  if (clicks) counts.clicks = clicks;
+  if (heat) counts.heat = heat;
+  if (survey) counts.survey = survey;
+  return counts;
 }
 
 async function readJson(response) {
@@ -92,6 +169,40 @@ export function recordVisitorEvent(event) {
       return counts;
     })
     .catch(() => null);
+}
+
+function postVisitor(body) {
+  if (typeof fetch !== 'function') return Promise.resolve(null);
+  return fetch(VISITOR_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: getVisitorId(), ...body }),
+    keepalive: true,
+  })
+    .then((response) => (response.ok ? true : null))
+    .catch(() => null);
+}
+
+/** Count a screen every time it is shown, and count the person once. */
+export function recordPageView(page) {
+  if (!VISITOR_PAGES.includes(page)) return Promise.resolve(null);
+  return postVisitor({ event: 'page', page });
+}
+
+/**
+ * Count a click. x and y are percentages of the viewport (0–100).
+ * The label is the control we named, never an answer the person typed.
+ */
+export function recordClick({ page, target, x, y }) {
+  if (!VISITOR_PAGES.includes(page)) return Promise.resolve(null);
+  if (typeof target !== 'string' || !target.trim()) return Promise.resolve(null);
+  return postVisitor({
+    event: 'click',
+    page,
+    target: target.trim().slice(0, 80),
+    x,
+    y,
+  });
 }
 
 /**

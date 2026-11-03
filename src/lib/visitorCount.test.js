@@ -1,4 +1,4 @@
-import { fetchVisitorCounts, getVisitorId, recordVisitorEvent } from './visitorCount';
+import { fetchVisitorCounts, getVisitorId, recordClick, recordPageView, recordVisitorEvent } from './visitorCount';
 
 function jsonResponse(body, status = 200) {
   return {
@@ -57,6 +57,25 @@ test('a failed report is retried on the next visit', async () => {
   global.fetch.mockResolvedValueOnce(jsonResponse({ ok: true, started: 1, completed: 0 }));
   expect(await recordVisitorEvent('started')).toEqual({ started: 1, completed: 0 });
   expect(global.fetch).toHaveBeenCalledTimes(2);
+});
+
+test('a page hit is posted every time, and a click keeps its label', async () => {
+  global.fetch.mockResolvedValue(jsonResponse({ ok: true }));
+  await recordPageView('step-1');
+  await recordPageView('step-1');
+  expect(global.fetch).toHaveBeenCalledTimes(2);
+  expect(JSON.parse(global.fetch.mock.calls[0][1].body)).toMatchObject({ event: 'page', page: 'step-1' });
+
+  await recordClick({ page: 'step-1', target: 'See my programs', x: 25, y: 40 });
+  expect(JSON.parse(global.fetch.mock.calls[2][1].body)).toMatchObject({
+    event: 'click',
+    page: 'step-1',
+    target: 'See my programs',
+    x: 25,
+    y: 40,
+  });
+  expect(await recordPageView('nope')).toBeNull();
+  expect(global.fetch).toHaveBeenCalledTimes(3);
 });
 
 test('unknown events and HTML fallbacks are ignored', async () => {

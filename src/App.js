@@ -3,10 +3,9 @@ import { Analytics } from '@vercel/analytics/react';
 import OnboardingForm from './components/OnboardingForm';
 import ResultsPage from './components/ResultsPage';
 import ThemeToggle from './components/ThemeToggle';
-import MapView from './components/MapView';
 import OfficeBrief from './components/OfficeBrief';
 import CityAdmin from './components/CityAdmin';
-import { activeCity, setActiveCity, useCityConfig } from './cityConfig';
+import { setActiveCity } from './cityConfig';
 
 function viewFromHash(hash) {
   if (hash === '#office') return 'office';
@@ -15,17 +14,9 @@ function viewFromHash(hash) {
 }
 
 function App() {
-  const cityState = useCityConfig();
-  const city = activeCity(cityState);
-  const [view, setView] = useState(() => viewFromHash(window.location.hash)); // 'onboarding' | 'results' | 'map' | 'office' | 'admin'
+  const [view, setView] = useState(() => viewFromHash(window.location.hash)); // 'onboarding' | 'results' | 'office' | 'admin'
   const [selectedCategories] = useState([]);
   const [completedProfile, setCompletedProfile] = useState(null);
-  const [mapCategories, setMapCategories] = useState([]);
-
-  function openMap(categories = []) {
-    setMapCategories(categories);
-    setView('map');
-  }
 
   function openOffice() {
     window.location.hash = 'office';
@@ -63,10 +54,6 @@ function App() {
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
-  if (view === 'map') {
-    return <><Analytics /><ThemeToggle /><MapView onBack={() => setView('onboarding')} initialCategories={mapCategories} city={city} /></>;
-  }
-
   if (view === 'admin') {
     return (
       <>
@@ -92,7 +79,6 @@ function App() {
         <OfficeBrief
           onBack={leaveOffice}
           onRunCheck={leaveOffice}
-          onOpenMap={() => openMap()}
         />
       </>
     );
@@ -106,8 +92,6 @@ function App() {
         <OnboardingForm
           selectedCategories={selectedCategories}
           onComplete={handleFormComplete}
-          onOpenMap={() => openMap()}
-          onOpenCamp={() => openMap(['campground', 'safe_parking'])}
           onOpenOffice={openOffice}
           onOpenAdmin={openAdmin}
         />
@@ -123,7 +107,6 @@ function App() {
         profile={completedProfile}
         selectedCategories={selectedCategories}
         onStartOver={() => { setView('onboarding'); setCompletedProfile(null); }}
-        onOpenMap={() => openMap()}
       />
     </>
   );

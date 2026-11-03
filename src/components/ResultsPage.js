@@ -4,6 +4,8 @@ import { CITY_DISCLAIMER, activeCity, useCityConfig } from '../cityConfig';
 import PROGRAMS from '../data/programs';
 import { getStatePrograms } from '../data/statePrograms';
 import { getStateName } from '../data/stateFacts';
+import { usePageAnalytics } from '../lib/productAnalytics';
+import HelpSurvey from './HelpSurvey';
 import './ResultsPage.css';
 
 // Kept so an older profile that still names categories can narrow results.
@@ -56,7 +58,8 @@ const CATEGORY_ICONS = {
   shelter:          '🏚️',
 };
 
-export default function ResultsPage({ profile, selectedCategories, onStartOver, onOpenMap }) {
+export default function ResultsPage({ profile, selectedCategories, onStartOver }) {
+  usePageAnalytics('results');
   const city = activeCity(useCityConfig());
   const [activeFilter, setActiveFilter]     = useState('all');
   const [expandedId,   setExpandedId]       = useState(null);
@@ -111,8 +114,6 @@ export default function ResultsPage({ profile, selectedCategories, onStartOver, 
   const likelyCount   = categoryFilteredResults.filter(r => r.confidence === 'likely').length;
   const possiblyCount = categoryFilteredResults.filter(r => r.confidence === 'possibly').length;
   const stateName     = getStateName(profile.residentState);
-  // The resource map only has North Carolina places so far.
-  const showMap       = Boolean(onOpenMap) && profile.residentState === 'NC';
 
   function toggleExpand(id) {
     setExpandedId(prev => (prev === id ? null : id));
@@ -127,12 +128,6 @@ export default function ResultsPage({ profile, selectedCategories, onStartOver, 
         <header className="rp-header">
           <div className="rp-logo" aria-label="Eligibl"><span className="rp-logo-e" aria-hidden="true">E</span>ligibl</div>
           <div className="rp-header-actions">
-            {showMap && (
-              <button type="button" className="rp-map-btn" onClick={onOpenMap} aria-label="View NC resource map">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /><line x1="8" y1="2" x2="8" y2="18" /><line x1="16" y1="6" x2="16" y2="22" /></svg>
-                Map
-              </button>
-            )}
             <button
               type="button"
               className="rp-start-over"
@@ -168,6 +163,8 @@ export default function ResultsPage({ profile, selectedCategories, onStartOver, 
             <span className="rp-badge rp-badge--gray">No SSN required to use this tool</span>
           </div>
         </div>
+
+        <HelpSurvey />
 
         {/* Data gap prompt */}
         {profile.monthlyIncome === '' || profile.monthlyIncome === null ? (
@@ -354,6 +351,7 @@ function ProgramCard({ result, expanded, onToggle }) {
               target="_blank"
               rel="noopener noreferrer"
               className="rp-btn-apply"
+              data-track="apply-official"
             >
               Apply Now — Official Site ↗
             </a>

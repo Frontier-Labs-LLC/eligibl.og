@@ -6,6 +6,7 @@ import { US_STATES, getStateName } from '../data/stateFacts';
 import { getStatePrograms } from '../data/statePrograms';
 import PROGRAMS from '../data/programs';
 import { recordVisitorEvent } from '../lib/visitorCount';
+import { usePageAnalytics } from '../lib/productAnalytics';
 import './OnboardingForm.css';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -634,9 +635,10 @@ function StepDetails({ store }) {
 
 // ── Main component ───────────────────────────────────────────────────────────
 
-export default function OnboardingForm({ selectedCategories, onComplete, onOpenMap, onOpenCamp, onOpenOffice, onOpenAdmin }) {
+export default function OnboardingForm({ selectedCategories, onComplete, onOpenOffice, onOpenAdmin }) {
   const [currentStep, setCurrentStep] = useState(1);
   const store = useOnboardingStore();
+  usePageAnalytics(`step-${currentStep}`);
 
   const city = activeCity(useCityConfig());
   const current   = STEP_META[currentStep - 1];
@@ -762,33 +764,16 @@ export default function OnboardingForm({ selectedCategories, onComplete, onOpenM
           )}
           <div className="of-doors">
             {onOpenOffice && (
-              <button type="button" className="of-door" onClick={onOpenOffice}>
+              <button type="button" className="of-door" data-track="state-offices" onClick={onOpenOffice}>
                 State offices — seed or support this
               </button>
             )}
-            {onOpenMap && (
-              <button type="button" className="of-door" onClick={onOpenMap}>
-                View NC Resource Map
-              </button>
-            )}
-            {onOpenCamp && (
-              <button type="button" className="of-door" onClick={onOpenCamp}>
-                Public campgrounds and safe parking
-              </button>
-            )}
             {onOpenAdmin && (
-              <button type="button" className="of-door" onClick={onOpenAdmin}>
+              <button type="button" className="of-door" data-track="city-preview" onClick={onOpenAdmin}>
                 City preview
               </button>
             )}
           </div>
-          {onOpenCamp && (
-            <p className="of-camp-note">
-              Campgrounds are North Carolina State Parks sites with a published address.
-              Safe parking is listed only when the program publishes the lot.
-              Rest areas are not overnight parking.
-            </p>
-          )}
         </header>
 
         {/* Progress tracker */}
@@ -849,13 +834,25 @@ export default function OnboardingForm({ selectedCategories, onComplete, onOpenM
             </div>
             <div className="of-nav-right">
               <p className="of-nav-hint">
-                {currentStep === 1
-                  ? (store.residentState ? 'Everything after this is optional.' : 'Choose your state to continue.')
-                  : isLastStep ? 'Ready to see your matches!' : 'All questions are optional except your state.'}
+                {store.residentState
+                  ? 'Your state is enough. See programs now, or add detail for a closer list.'
+                  : 'Choose your state to continue.'}
               </p>
+              {canProceed() && !isLastStep && (
+                <button
+                  type="button"
+                  className="of-btn-next"
+                  data-track="see-my-programs"
+                  onClick={submitForm}
+                  aria-label="See my programs"
+                >
+                  See my programs
+                </button>
+              )}
               <button
                 type="button"
-                className="of-btn-next"
+                className={canProceed() && !isLastStep ? 'of-btn-back' : 'of-btn-next'}
+                data-track={isLastStep ? 'find-my-programs' : 'continue'}
                 onClick={goNext}
                 disabled={!canProceed()}
                 aria-label={isLastStep ? 'Find my programs' : `Continue to step ${currentStep + 1}`}

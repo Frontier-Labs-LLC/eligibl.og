@@ -1,0 +1,58 @@
+.hs-panel {
+  margin: 0 0 28px;
+  padding: 18px 18px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.hs-panel h2 {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+  color: var(--text-heading);
+}
+
+.hs-panel p {
+  margin: 0 0 14px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.hs-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hs-choice {
+  min-height: 44px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  color: var(--text-heading);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hs-choice--on {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.hs-why {
+  margin-top: 16px;
+}
+
+.hs-why p {
+  margin-bottom: 8px;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.hs-thanks {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text-heading);
+}
