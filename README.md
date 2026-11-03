@@ -6,6 +6,8 @@ The check asks which state you live in and covers all 50 states and Washington, 
 
 Open `#charlotte` for the City of Charlotte preview. The preview is stored in the browser. It is not an official City of Charlotte system. Campgrounds and safe parking are not on the map right now.
 
+`/admin` is a real path. It asks for Google before it shows how many people started the form and how many finished. The old `#admin` address forwards there. Sign-in is a server-side OAuth code flow, so the client secret never reaches the browser. Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `ADMIN_SESSION_SECRET`, and `ADMIN_GOOGLE_EMAILS` on the Vercel project. In Google Cloud, the JavaScript origin is `https://eligibl.org` and the redirect URI is `https://eligibl.org/api/auth/callback`.
+
 ## Scripts
 
 - `npm start` — local app
