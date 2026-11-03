@@ -56,7 +56,7 @@ function Heatmap({ cells }) {
 }
 
 /**
- * Live counts for /#admin.
+ * Live counts for /admin. The counts API only answers a signed-in admin.
  * Page hits are every time a screen was shown. Uniques are people.
  * The heatmap is where those people clicked, in tenths of the screen.
  */

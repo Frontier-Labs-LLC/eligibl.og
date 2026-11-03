@@ -1,0 +1,63 @@
+.ag-page {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+.ag-card {
+  width: min(440px, 100%);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 24px;
+}
+
+.ag-brand {
+  margin: 0 0 12px;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--text-heading);
+}
+
+.ag-brand span { color: var(--primary); }
+
+.ag-card h1 {
+  margin: 0 0 12px;
+  font-size: 1.6rem;
+  color: var(--text-heading);
+}
+
+.ag-card p {
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+.ag-error {
+  color: var(--text-heading);
+  background: var(--card-alt);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.ag-google {
+  display: inline-block;
+  background: var(--primary);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 12px 18px;
+}
+
+.ag-google:hover { filter: brightness(1.05); }
+
+.ca-signout {
+  color: var(--primary);
+  font-size: 0.95rem;
+  margin-right: 12px;
+}

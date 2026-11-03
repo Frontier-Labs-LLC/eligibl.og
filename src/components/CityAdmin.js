@@ -21,7 +21,7 @@ const FIELDS = [
   ['contactWebsite', 'Office website', 'https://'],
 ];
 
-export default function CityAdmin({ onBack, onPreview }) {
+export default function CityAdmin({ onBack, onPreview, email }) {
   const state = useCityConfig();
   const [draft, setDraft] = useState(state.charlotte);
   const [saved, setSaved] = useState(false);
@@ -65,7 +65,10 @@ export default function CityAdmin({ onBack, onPreview }) {
           <button type="button" className="ca-logo" onClick={onBack}>
             <span>E</span>ligibl
           </button>
-          <p>City configuration</p>
+          <p>
+            {email ? <a className="ca-signout" href="/api/auth/logout">Sign out</a> : null}
+            City configuration
+          </p>
         </header>
 
         <VisitorAnalytics />

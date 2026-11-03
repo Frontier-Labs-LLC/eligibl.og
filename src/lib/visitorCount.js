@@ -212,7 +212,11 @@ export function recordClick({ page, target, x, y }) {
  */
 export function fetchVisitorCounts() {
   if (typeof fetch !== 'function') return Promise.resolve({ status: 'unavailable', counts: null });
-  return fetch(VISITOR_API, { method: 'GET', headers: { Accept: 'application/json' } })
+  return fetch(VISITOR_API, {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+    credentials: 'same-origin',
+  })
     .then(async (response) => {
       const data = await readJson(response);
       if (response.status === 503 && data && data.configured === false) {
