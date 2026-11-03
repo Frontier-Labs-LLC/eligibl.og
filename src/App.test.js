@@ -4,12 +4,16 @@ import App from './App';
 import { resetCityStore } from './cityConfig';
 import useOnboardingStore from './store/useOnboardingStore';
 
-beforeEach(() => {
+const nativeFetch = global.fetch;
+
+beforeEach(async () => {
   localStorage.clear();
   resetCityStore();
   useOnboardingStore.getState().reset();
   document.documentElement.removeAttribute('data-theme');
   window.history.replaceState(null, '', '/');
+  global.fetch = nativeFetch;
+  await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
 });
 
 test('opens on the resident category check', () => {
@@ -26,13 +30,56 @@ test('opens in dark mode without asking', () => {
   expect(screen.getByRole('button', { name: /switch to light mode/i })).toBeInTheDocument();
 });
 
-test('the admin and office addresses stay on the resident check', () => {
-  window.location.hash = '#admin';
-  const { unmount } = render(<App />);
-  expect(screen.getByRole('heading', { name: /find benefits by category/i })).toBeInTheDocument();
-  expect(screen.queryByRole('heading', { name: /configure the charlotte preview/i })).not.toBeInTheDocument();
-  unmount();
+test('/admin asks for Google before it shows usage', async () => {
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: false,
+    status: 401,
+    headers: { get: () => 'application/json' },
+    json: () => Promise.resolve({ ok: false }),
+  });
+  window.history.pushState(null, '', '/admin');
+  render(<App />);
 
+  const link = await screen.findByRole('link', { name: /sign in with google/i });
+  expect(link).toHaveAttribute('href', '/api/auth/google');
+  expect(screen.queryByRole('heading', { name: /find benefits by category/i })).not.toBeInTheDocument();
+  expect(window.location.pathname).toBe('/admin');
+  expect(window.location.hash).toBe('');
+});
+
+test('a signed-in admin sees how many people tried the form', async () => {
+  global.fetch = jest.fn((url) => {
+    if (String(url).includes('/api/auth/me')) {
+      return Promise.resolve(jsonResponse({ ok: true, email: 'owner@eligibl.org' }));
+    }
+    return Promise.resolve(jsonResponse({ ok: true, started: 4, completed: 1 }));
+  });
+  window.history.pushState(null, '', '/admin');
+  render(<App />);
+
+  expect(await screen.findByText(/owner@eligibl\.org/)).toBeInTheDocument();
+  expect(await screen.findByText('Started the form')).toBeInTheDocument();
+  expect(screen.getByText('4')).toBeInTheDocument();
+  expect(screen.getByText('1')).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: /sign out/i })).toHaveAttribute('href', '/api/auth/logout');
+});
+
+test('the old #admin address becomes /admin', async () => {
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: false,
+    status: 401,
+    headers: { get: () => 'application/json' },
+    json: () => Promise.resolve({ ok: false }),
+  });
+  window.location.hash = '#admin';
+  render(<App />);
+
+  expect(await screen.findByRole('link', { name: /sign in with google/i })).toBeInTheDocument();
+  expect(window.location.pathname).toBe('/admin');
+  expect(window.location.hash).toBe('');
+});
+
+test('the office address stays on the resident check', () => {
   window.location.hash = '#office';
   render(<App />);
   expect(screen.getByRole('heading', { name: /find benefits by category/i })).toBeInTheDocument();
